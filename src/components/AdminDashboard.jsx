@@ -1,10 +1,6 @@
 import { GraduationCap, MapPin, Users, Monitor, Settings, Building } from 'lucide-react';
 
-interface AdminDashboardProps {
-  onLogout: () => void;
-}
-
-function AdminDashboard({ onLogout }: AdminDashboardProps) {
+function AdminDashboard({ onLogout }) {
   return (
     <div className="min-h-screen bg-[#F5EFED] flex">
       <aside className="w-64 bg-[#03012C] text-white flex flex-col">
