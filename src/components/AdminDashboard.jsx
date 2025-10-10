@@ -1,4 +1,4 @@
-import { GraduationCap, MapPin, Users, Monitor, Settings, Building } from 'lucide-react';
+import { GraduationCap, MapPin, Users, Monitor, Building } from 'lucide-react';
 
 function AdminDashboard({ onLogout }) {
   return (
@@ -49,7 +49,7 @@ function AdminDashboard({ onLogout }) {
               onClick={onLogout}
               className="w-10 h-10 bg-[#03012C] rounded-full flex items-center justify-center text-white font-bold hover:bg-[#058ED9] transition"
             >
-              JS
+              ADM
             </button>
           </div>
         </header>
@@ -79,7 +79,7 @@ function AdminDashboard({ onLogout }) {
 
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-[#03012C] mb-6">Ações Administrativas</h2>
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-3 gap-6">
               <button className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-[#058ED9] hover:shadow-lg transition group">
                 <div className="w-12 h-12 bg-[#03012C] rounded-lg flex items-center justify-center mb-4 group-hover:bg-[#058ED9] transition">
                   <MapPin className="w-6 h-6 text-white" />
@@ -99,13 +99,6 @@ function AdminDashboard({ onLogout }) {
                   <Monitor className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="font-semibold text-[#03012C]">Gerenciar Softwares</h3>
-              </button>
-
-              <button className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-[#058ED9] hover:shadow-lg transition group">
-                <div className="w-12 h-12 bg-[#03012C] rounded-lg flex items-center justify-center mb-4 group-hover:bg-[#058ED9] transition">
-                  <Settings className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-semibold text-[#03012C]">Configurações</h3>
               </button>
             </div>
           </section>
