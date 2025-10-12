@@ -1,6 +1,7 @@
 import { GraduationCap, User, Lock } from 'lucide-react';
 import { useState } from 'react';
 import AdminDashboard from './components/AdminDashboard';
+import ProfessorDashboard from './components/ProfessorDashboard';
 
 function App() {
   const [email, setEmail] = useState('');
@@ -31,6 +32,10 @@ function App() {
 
   if (isLoggedIn && userRole === 'admin') {
     return <AdminDashboard onLogout={handleLogout} />;
+  }
+
+  if (isLoggedIn && userRole === 'professor') {
+    return <ProfessorDashboard onLogout={handleLogout} />;
   }
 
   return (
