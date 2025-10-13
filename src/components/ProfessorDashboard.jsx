@@ -1,79 +1,79 @@
 import { GraduationCap, Calendar, MapPin, Monitor, Clock } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
+import { useApp } from '../context/AppContext';
 
 function ProfessorDashboard({ onLogout }) {
   const [currentView, setCurrentView] = useState('dashboard');
-  const [mockData, setMockData] = useState({
-    users: [],
-    spaces: [],
-    softwares: [],
-    reservations: []
-  });
-  const [stats, setStats] = useState({
-    todayReservations: 0,
-    availableSpaces: 0,
-    pendingSoftwares: 0
-  });
 
-  useEffect(() => {
-    const users = [
-      { id: 1, name: 'Administrador', email: 'admin@academigold.com', role: 'admin' },
-      { id: 2, name: 'Prof. Maria Silva', email: 'maria@academigold.com', role: 'professor' }
-    ];
+  // Consumir dados do contexto
+  const {
+    currentUser,
+    spaces,
+    software,
+    reservations,
+    getSpaceById
+  } = useApp();
 
-    const spaces = [
-      { id: 1, name: 'LAB01', type: 'laboratory', status: 'active', capacity: 30 },
-      { id: 2, name: 'LAB02', type: 'laboratory', status: 'active', capacity: 25 },
-      { id: 3, name: 'Sala 101', type: 'classroom', status: 'inactive', capacity: 40 }
-    ];
+  // Verificar se usuário está logado
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-[#F5EFED] flex items-center justify-center">
+        <div className="bg-white rounded-xl p-8 border-2 border-gray-200 max-w-md text-center">
+          <GraduationCap className="w-16 h-16 text-[#058ED9] mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-[#03012C] mb-2">Acesso Restrito</h2>
+          <p className="text-gray-600 mb-4">
+            Por favor, faça login para acessar o Portal do Professor.
+          </p>
+          <button
+            onClick={onLogout}
+            className="px-6 py-3 bg-[#03012C] text-white rounded-lg hover:bg-[#058ED9] transition"
+          >
+            Voltar ao Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-    const softwares = [
-      { id: 1, name: 'Visual Studio Code', status: 'approved', version: '1.85' },
-      { id: 2, name: 'Adobe Photoshop', status: 'pending', version: '2024' }
-    ];
+  // Calcular estatísticas reativas específicas do professor
+  const stats = useMemo(() => {
+    const uniqueSpaces = Array.from(new Map((spaces || []).map(s => [s.id, s])).values());
+    const uniqueSoftware = Array.from(new Map((software || []).map(sw => [sw.id, sw])).values());
+    const uniqueReservations = Array.from(new Map((reservations || []).map(r => [r.id, r])).values());
 
-    const reservations = [
-      {
-        id: 1,
-        space: 'LAB01 - Laboratório de Informática 101',
-        date: '08/09',
-        startTime: '07:00',
-        endTime: '12:00',
-        status: 'Finalizada',
-        statusColor: 'bg-green-500'
-      },
-      {
-        id: 2,
-        space: 'LAB02 - Laboratório de Redes',
-        date: '08/09',
-        startTime: '07:00',
-        endTime: '12:00',
-        status: 'Finalizada',
-        statusColor: 'bg-green-500'
-      },
-      {
-        id: 3,
-        space: 'LAB01 - Laboratório de Informática 101',
-        date: '08/09',
-        startTime: '07:00',
-        endTime: '12:00',
-        status: 'Finalizada',
-        statusColor: 'bg-green-500'
-      }
-    ];
+    // Filtrar reservas do professor logado
+    const professorReservations = uniqueReservations.filter(r => r.userId === currentUser.id);
 
-    setMockData({ users, spaces, softwares, reservations });
+    // Reservas recentes (últimas 3)
+    const todayReservations = professorReservations.slice(-3).length;
 
-    const todayReservations = 0;
-    const availableSpaces = spaces.filter(s => s.status === 'active').length;
-    const pendingSoftwares = softwares.filter(s => s.status === 'pending').length;
+    // Espaços disponíveis (status 'active')
+    const availableSpaces = uniqueSpaces.filter(s => s.status === 'active').length;
 
-    setStats({
+    // Softwares pendentes
+    const pendingSoftwares = uniqueSoftware.filter(s => s.status === 'pending').length;
+
+    // Últimas reservas do professor (com detalhes enriquecidos)
+    const recentReservations = professorReservations.slice(-3).map(res => {
+      const space = getSpaceById(res.spaceId);
+      return {
+        id: res.id,
+        space: space ? `${space.code} - ${space.name}` : 'Espaço Desconhecido',
+        date: new Date(res.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+        startTime: res.startTime,
+        endTime: res.endTime,
+        status: res.status === 'completed' ? 'Finalizada' : res.status === 'confirmed' ? 'Confirmada' : 'Cancelada',
+        statusColor: res.status === 'completed' ? 'bg-green-500' : res.status === 'confirmed' ? 'bg-blue-500' : 'bg-gray-500'
+      };
+    });
+
+    return {
       todayReservations,
       availableSpaces,
-      pendingSoftwares
-    });
-  }, []);
+      pendingSoftwares,
+      recentReservations
+    };
+  }, [spaces, software, reservations, currentUser.id, getSpaceById]);
 
   return (
     <div className="min-h-screen bg-[#F5EFED] flex">
@@ -126,13 +126,16 @@ function ProfessorDashboard({ onLogout }) {
 
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-sm font-semibold text-[#03012C]">Professor</p>
+              <p className="text-sm font-semibold text-[#03012C]">{currentUser.name}</p>
+              {currentUser.department && (
+                <p className="text-xs text-gray-600">{currentUser.department}</p>
+              )}
             </div>
             <button
               onClick={onLogout}
               className="w-10 h-10 bg-[#03012C] rounded-full flex items-center justify-center text-white font-bold hover:bg-[#058ED9] transition text-xs"
             >
-              MS
+              {currentUser.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
             </button>
           </div>
         </header>
@@ -147,7 +150,7 @@ function ProfessorDashboard({ onLogout }) {
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 border border-white/20 hover:bg-white/20 transition">
                 <div className="text-4xl font-bold mb-2">{stats.todayReservations}</div>
-                <div className="text-sm text-white/90 font-medium">Minhas Reservas Hoje</div>
+                <div className="text-sm text-white/90 font-medium">Minhas Reservas Recentes</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 border border-white/20 hover:bg-white/20 transition">
                 <div className="text-4xl font-bold mb-2">{stats.availableSpaces}</div>
@@ -197,50 +200,58 @@ function ProfessorDashboard({ onLogout }) {
               </h2>
             </div>
 
-            <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden">
-              <div className="divide-y divide-gray-200">
-                {mockData.reservations.map((reservation) => (
-                  <div
-                    key={reservation.id}
-                    className="p-5 hover:bg-gray-50 transition flex items-center justify-between"
-                  >
-                    <div className="flex items-start gap-4 flex-1">
-                      <div className="w-10 h-10 bg-[#058ED9]/10 rounded-lg flex items-center justify-center">
-                        <MapPin className="w-5 h-5 text-[#058ED9]" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-[#03012C] mb-1">{reservation.space}</h3>
-                        <div className="flex items-center gap-4 text-sm text-gray-600">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            {reservation.date}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-4 h-4" />
-                            {reservation.startTime} - {reservation.endTime}
-                          </span>
+            {stats.recentReservations.length > 0 ? (
+              <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden">
+                <div className="divide-y divide-gray-200">
+                  {stats.recentReservations.map((reservation) => (
+                    <div
+                      key={reservation.id}
+                      className="p-5 hover:bg-gray-50 transition flex items-center justify-between"
+                    >
+                      <div className="flex items-start gap-4 flex-1">
+                        <div className="w-10 h-10 bg-[#058ED9]/10 rounded-lg flex items-center justify-center">
+                          <MapPin className="w-5 h-5 text-[#058ED9]" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-[#03012C] mb-1">{reservation.space}</h3>
+                          <div className="flex items-center gap-4 text-sm text-gray-600">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-4 h-4" />
+                              {reservation.date}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
+                              {reservation.startTime} - {reservation.endTime}
+                            </span>
+                          </div>
                         </div>
                       </div>
+                      <span className={`${reservation.statusColor} text-white text-xs font-semibold px-4 py-2 rounded-full`}>
+                        {reservation.status}
+                      </span>
                     </div>
-                    <span className={`${reservation.statusColor} text-white text-xs font-semibold px-4 py-2 rounded-full`}>
-                      {reservation.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
 
-              <div className="p-5 bg-gray-50 border-t-2 border-gray-200">
-                <button className="w-full py-3 border-2 border-[#058ED9] text-[#058ED9] font-semibold rounded-lg hover:bg-[#058ED9] hover:text-white transition">
-                  Ver Todas as Reservas
-                </button>
+                <div className="p-5 bg-gray-50 border-t-2 border-gray-200">
+                  <button className="w-full py-3 border-2 border-[#058ED9] text-[#058ED9] font-semibold rounded-lg hover:bg-[#058ED9] hover:text-white transition">
+                    Ver Todas as Reservas
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="bg-white rounded-xl border-2 border-gray-200 p-8 text-center">
+                <Clock className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-gray-600">Você ainda não possui reservas.</p>
+                <p className="text-sm text-gray-500 mt-1">Comece reservando um espaço acadêmico!</p>
+              </div>
+            )}
           </section>
         </main>
 
         <div className="fixed bottom-6 right-6 bg-white rounded-lg shadow-xl border-2 border-[#57CC99] p-4 animate-slide-up">
           <p className="text-sm font-semibold text-[#03012C]">Login realizado com sucesso!</p>
-          <p className="text-xs text-gray-600 mt-1">Bem-vindo, Professor.</p>
+          <p className="text-xs text-gray-600 mt-1">Bem-vindo, {currentUser.name}.</p>
         </div>
       </div>
     </div>
