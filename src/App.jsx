@@ -2,39 +2,33 @@ import { GraduationCap, User, Lock } from 'lucide-react';
 import { useState } from 'react';
 import AdminDashboard from './components/AdminDashboard';
 import ProfessorDashboard from './components/ProfessorDashboard';
+import { useApp } from './context/AppContext';
 
 function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState(null);
+  const { currentUser, login, logout } = useApp();
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (email === 'admin@academigold.com' && password === 'admin123') {
-      setIsLoggedIn(true);
-      setUserRole('admin');
-    } else if (email === 'professor@academigold.com' && password === 'prof123') {
-      setIsLoggedIn(true);
-      setUserRole('professor');
-    } else {
-      alert('Credenciais inválidas!');
+    const result = login(email, password);
+    if (!result.success) {
+      alert(result.message || 'Credenciais inválidas!');
     }
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    setUserRole(null);
+    logout();
     setEmail('');
     setPassword('');
   };
 
-  if (isLoggedIn && userRole === 'admin') {
+  if (currentUser && currentUser.role === 'admin') {
     return <AdminDashboard onLogout={handleLogout} />;
   }
 
-  if (isLoggedIn && userRole === 'professor') {
+  if (currentUser && currentUser.role === 'professor') {
     return <ProfessorDashboard onLogout={handleLogout} />;
   }
 
