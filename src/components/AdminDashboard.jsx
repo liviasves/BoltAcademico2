@@ -1,9 +1,64 @@
 import { GraduationCap, MapPin, Users, Monitor, Building } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SpaceManagement from './SpaceManagement';
 
 function AdminDashboard({ onLogout }) {
   const [currentView, setCurrentView] = useState('dashboard');
+  const [mockData, setMockData] = useState({
+    users: [],
+    spaces: [],
+    softwares: []
+  });
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeSpaces: 0,
+    approvedSoftwares: 0,
+    pendingSoftwares: 0,
+    professors: 0,
+    admins: 0,
+    labs: 0,
+    classrooms: 0
+  });
+
+  useEffect(() => {
+    const users = [
+      { id: 1, name: 'Administrador', email: 'admin@academigold.com', role: 'admin' },
+      { id: 2, name: 'Prof. Maria Silva', email: 'maria@academigold.com', role: 'professor' }
+    ];
+
+    const spaces = [
+      { id: 1, name: 'LAB01', type: 'laboratory', status: 'active', capacity: 30 },
+      { id: 2, name: 'LAB02', type: 'laboratory', status: 'active', capacity: 25 },
+      { id: 3, name: 'Sala 101', type: 'classroom', status: 'inactive', capacity: 40 }
+    ];
+
+    const softwares = [
+      { id: 1, name: 'Visual Studio Code', status: 'approved', version: '1.85' },
+      { id: 2, name: 'Adobe Photoshop', status: 'pending', version: '2024' }
+    ];
+
+    setMockData({ users, spaces, softwares });
+
+    const totalUsers = users.length;
+    const activeSpaces = spaces.filter(s => s.status === 'active').length;
+    const approvedSoftwares = softwares.filter(s => s.status === 'approved').length;
+    const pendingSoftwares = softwares.filter(s => s.status === 'pending').length;
+    const professors = users.filter(u => u.role === 'professor').length;
+    const admins = users.filter(u => u.role === 'admin').length;
+    const labs = spaces.filter(s => s.type === 'laboratory').length;
+    const classrooms = spaces.filter(s => s.type === 'classroom').length;
+
+    setStats({
+      totalUsers,
+      activeSpaces,
+      approvedSoftwares,
+      pendingSoftwares,
+      professors,
+      admins,
+      labs,
+      classrooms
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#F5EFED] flex">
@@ -78,15 +133,15 @@ function AdminDashboard({ onLogout }) {
 
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                <div className="text-3xl font-bold mb-1">2</div>
+                <div className="text-3xl font-bold mb-1">{stats.totalUsers}</div>
                 <div className="text-sm text-[#80ED99]">Total de Usuários</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                <div className="text-3xl font-bold mb-1">2</div>
+                <div className="text-3xl font-bold mb-1">{stats.activeSpaces}</div>
                 <div className="text-sm text-[#80ED99]">Espaços Ativos</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                <div className="text-3xl font-bold mb-1">1</div>
+                <div className="text-3xl font-bold mb-1">{mockData.softwares.length}</div>
                 <div className="text-sm text-[#80ED99]">Softwares Cadastrados</div>
               </div>
             </div>
@@ -129,13 +184,13 @@ function AdminDashboard({ onLogout }) {
                   <h3 className="font-semibold text-[#03012C]">Usuários do Sistema</h3>
                   <Users className="w-5 h-5 text-[#058ED9]" />
                 </div>
-                <div className="text-3xl font-bold text-[#03012C] mb-3">2</div>
+                <div className="text-3xl font-bold text-[#03012C] mb-3">{stats.totalUsers}</div>
                 <div className="flex gap-4 text-sm">
                   <span className="text-[#058ED9]">
-                    <span className="font-semibold">1</span> Professores
+                    <span className="font-semibold">{stats.professors}</span> Professores
                   </span>
                   <span className="text-[#57CC99]">
-                    <span className="font-semibold">1</span> Admins
+                    <span className="font-semibold">{stats.admins}</span> Admins
                   </span>
                 </div>
               </div>
@@ -145,16 +200,16 @@ function AdminDashboard({ onLogout }) {
                   <h3 className="font-semibold text-[#03012C]">Espaços Acadêmicos</h3>
                   <Building className="w-5 h-5 text-[#058ED9]" />
                 </div>
-                <div className="text-3xl font-bold text-[#03012C] mb-3">3</div>
+                <div className="text-3xl font-bold text-[#03012C] mb-3">{mockData.spaces.length}</div>
                 <div className="flex gap-4 text-sm">
                   <span className="text-[#058ED9]">
-                    <span className="font-semibold">2</span> Labs
+                    <span className="font-semibold">{stats.labs}</span> Labs
                   </span>
                   <span className="text-[#57CC99]">
-                    <span className="font-semibold">1</span> Salas
+                    <span className="font-semibold">{stats.classrooms}</span> Salas
                   </span>
                   <span className="text-[#80ED99]">
-                    <span className="font-semibold">2</span> Ativos
+                    <span className="font-semibold">{stats.activeSpaces}</span> Ativos
                   </span>
                 </div>
               </div>
@@ -164,13 +219,13 @@ function AdminDashboard({ onLogout }) {
                   <h3 className="font-semibold text-[#03012C]">Softwares</h3>
                   <Monitor className="w-5 h-5 text-[#058ED9]" />
                 </div>
-                <div className="text-3xl font-bold text-[#03012C] mb-3">1</div>
+                <div className="text-3xl font-bold text-[#03012C] mb-3">{mockData.softwares.length}</div>
                 <div className="flex gap-4 text-sm">
                   <span className="text-[#57CC99]">
-                    <span className="font-semibold">1</span> Aprovados
+                    <span className="font-semibold">{stats.approvedSoftwares}</span> Aprovados
                   </span>
                   <span className="text-gray-400">
-                    <span className="font-semibold">0</span> Pendentes
+                    <span className="font-semibold">{stats.pendingSoftwares}</span> Pendentes
                   </span>
                 </div>
               </div>

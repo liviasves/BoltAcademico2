@@ -1,38 +1,79 @@
 import { GraduationCap, Calendar, MapPin, Monitor, Clock } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function ProfessorDashboard({ onLogout }) {
   const [currentView, setCurrentView] = useState('dashboard');
+  const [mockData, setMockData] = useState({
+    users: [],
+    spaces: [],
+    softwares: [],
+    reservations: []
+  });
+  const [stats, setStats] = useState({
+    todayReservations: 0,
+    availableSpaces: 0,
+    pendingSoftwares: 0
+  });
 
-  const recentReservations = [
-    {
-      id: 1,
-      space: 'LAB01 - Laboratório de Informática 101',
-      date: '08/09',
-      startTime: '07:00',
-      endTime: '12:00',
-      status: 'Finalizada',
-      statusColor: 'bg-green-500'
-    },
-    {
-      id: 2,
-      space: 'aaaa - aaaa',
-      date: '08/09',
-      startTime: '07:00',
-      endTime: '12:00',
-      status: 'Finalizada',
-      statusColor: 'bg-green-500'
-    },
-    {
-      id: 3,
-      space: 'LAB01 - Laboratório de Informática 101',
-      date: '08/09',
-      startTime: '07:00',
-      endTime: '12:00',
-      status: 'Finalizada',
-      statusColor: 'bg-green-500'
-    }
-  ];
+  useEffect(() => {
+    const users = [
+      { id: 1, name: 'Administrador', email: 'admin@academigold.com', role: 'admin' },
+      { id: 2, name: 'Prof. Maria Silva', email: 'maria@academigold.com', role: 'professor' }
+    ];
+
+    const spaces = [
+      { id: 1, name: 'LAB01', type: 'laboratory', status: 'active', capacity: 30 },
+      { id: 2, name: 'LAB02', type: 'laboratory', status: 'active', capacity: 25 },
+      { id: 3, name: 'Sala 101', type: 'classroom', status: 'inactive', capacity: 40 }
+    ];
+
+    const softwares = [
+      { id: 1, name: 'Visual Studio Code', status: 'approved', version: '1.85' },
+      { id: 2, name: 'Adobe Photoshop', status: 'pending', version: '2024' }
+    ];
+
+    const reservations = [
+      {
+        id: 1,
+        space: 'LAB01 - Laboratório de Informática 101',
+        date: '08/09',
+        startTime: '07:00',
+        endTime: '12:00',
+        status: 'Finalizada',
+        statusColor: 'bg-green-500'
+      },
+      {
+        id: 2,
+        space: 'LAB02 - Laboratório de Redes',
+        date: '08/09',
+        startTime: '07:00',
+        endTime: '12:00',
+        status: 'Finalizada',
+        statusColor: 'bg-green-500'
+      },
+      {
+        id: 3,
+        space: 'LAB01 - Laboratório de Informática 101',
+        date: '08/09',
+        startTime: '07:00',
+        endTime: '12:00',
+        status: 'Finalizada',
+        statusColor: 'bg-green-500'
+      }
+    ];
+
+    setMockData({ users, spaces, softwares, reservations });
+
+    const todayReservations = 0;
+    const availableSpaces = spaces.filter(s => s.status === 'active').length;
+    const pendingSoftwares = softwares.filter(s => s.status === 'pending').length;
+
+    setStats({
+      todayReservations,
+      availableSpaces,
+      pendingSoftwares
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#F5EFED] flex">
@@ -105,15 +146,15 @@ function ProfessorDashboard({ onLogout }) {
 
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 border border-white/20 hover:bg-white/20 transition">
-                <div className="text-4xl font-bold mb-2">0</div>
+                <div className="text-4xl font-bold mb-2">{stats.todayReservations}</div>
                 <div className="text-sm text-white/90 font-medium">Minhas Reservas Hoje</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 border border-white/20 hover:bg-white/20 transition">
-                <div className="text-4xl font-bold mb-2">2</div>
+                <div className="text-4xl font-bold mb-2">{stats.availableSpaces}</div>
                 <div className="text-sm text-white/90 font-medium">Espaços Disponíveis</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 border border-white/20 hover:bg-white/20 transition">
-                <div className="text-4xl font-bold mb-2">0</div>
+                <div className="text-4xl font-bold mb-2">{stats.pendingSoftwares}</div>
                 <div className="text-sm text-white/90 font-medium">Softwares Pendentes</div>
               </div>
             </div>
@@ -158,7 +199,7 @@ function ProfessorDashboard({ onLogout }) {
 
             <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden">
               <div className="divide-y divide-gray-200">
-                {recentReservations.map((reservation) => (
+                {mockData.reservations.map((reservation) => (
                   <div
                     key={reservation.id}
                     className="p-5 hover:bg-gray-50 transition flex items-center justify-between"
