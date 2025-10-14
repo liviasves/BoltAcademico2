@@ -33,6 +33,7 @@ const initialUsers = [
     email: 'admin@academigold.com',
     password: 'admin123',
     role: 'admin',
+    department: 'Escola de Tecnologia',
     createdAt: new Date().toISOString()
   },
   {
@@ -41,7 +42,7 @@ const initialUsers = [
     email: 'professor@academigold.com',
     password: 'prof123',
     role: 'professor',
-    department: 'Ciência da Computação',
+    department: 'Escola de Ciências',
     createdAt: new Date().toISOString()
   }
 ];

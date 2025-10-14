@@ -1,6 +1,7 @@
 import { GraduationCap, MapPin, Users, Monitor, Building } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import SpaceManagement from './SpaceManagement';
+import UserManagement from './UserManagement';
 import { useApp } from '../context/AppContext';
 
 function AdminDashboard({ onLogout }) {
@@ -68,7 +69,12 @@ function AdminDashboard({ onLogout }) {
             <MapPin className="w-5 h-5" />
             <span>Espaços Acadêmicos</span>
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition text-left">
+          <button
+            onClick={() => setCurrentView('users')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition text-left ${
+              currentView === 'users' ? 'bg-white/20' : 'hover:bg-white/10'
+            }`}
+          >
             <Users className="w-5 h-5" />
             <span>Usuários</span>
           </button>
@@ -107,7 +113,7 @@ function AdminDashboard({ onLogout }) {
         </header>
 
         {currentView === 'dashboard' ? (
-        <main className="flex-1 p-8 overflow-auto">
+        <main className="flex-1 p-8 overflow-auto bg-[#F5EFED]">
           <div className="bg-[#03012C] rounded-2xl p-8 mb-8 text-white">
             <h1 className="text-3xl font-bold mb-2">Painel Administrativo</h1>
             <p className="text-[#80ED99] mb-6">
@@ -143,7 +149,10 @@ function AdminDashboard({ onLogout }) {
                 <h3 className="font-semibold text-[#03012C]">Gerenciar Espaços</h3>
               </button>
 
-              <button className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-[#058ED9] hover:shadow-lg transition group">
+              <button
+                onClick={() => setCurrentView('users')}
+                className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-[#058ED9] hover:shadow-lg transition group"
+              >
                 <div className="w-12 h-12 bg-[#03012C] rounded-lg flex items-center justify-center mb-4 group-hover:bg-[#058ED9] transition">
                   <Users className="w-6 h-6 text-white" />
                 </div>
@@ -215,9 +224,11 @@ function AdminDashboard({ onLogout }) {
             </div>
           </section>
         </main>
-        ) : (
+        ) : currentView === 'spaces' ? (
           <SpaceManagement />
-        )}
+        ) : currentView === 'users' ? (
+          <UserManagement />
+        ) : null}
 
         <div className="fixed bottom-6 right-6 bg-white rounded-lg shadow-xl border-2 border-[#57CC99] p-4 animate-slide-up">
           <p className="text-sm font-semibold text-[#03012C]">Login realizado com sucesso!</p>
