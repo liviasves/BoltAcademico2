@@ -1,6 +1,7 @@
 import { GraduationCap, Calendar, MapPin, Monitor, Clock } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
+import AvailableSpaces from './AvailableSpaces';
 
 function ProfessorDashboard({ onLogout }) {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -97,7 +98,12 @@ function ProfessorDashboard({ onLogout }) {
             <Calendar className="w-5 h-5" />
             <span>Minhas Reservas</span>
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition text-left">
+          <button
+            onClick={() => setCurrentView('spaces')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition text-left ${
+              currentView === 'spaces' ? 'bg-white/20' : 'hover:bg-white/10'
+            }`}
+          >
             <MapPin className="w-5 h-5" />
             <span>Espaços Disponíveis</span>
           </button>
@@ -140,6 +146,9 @@ function ProfessorDashboard({ onLogout }) {
           </div>
         </header>
 
+        {currentView === 'spaces' ? (
+          <AvailableSpaces />
+        ) : (
         <main className="flex-1 p-8 overflow-auto">
           <div className="bg-gradient-to-r from-[#058ED9] to-[#0B79BE] rounded-2xl p-8 mb-8 text-white shadow-lg">
             <h1 className="text-3xl font-bold mb-2">Portal do Professor</h1>
@@ -174,7 +183,10 @@ function ProfessorDashboard({ onLogout }) {
                 <p className="text-sm text-gray-600">Visualize e gerencie suas reservas</p>
               </button>
 
-              <button className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-[#058ED9] hover:shadow-lg transition group text-left">
+              <button
+                onClick={() => setCurrentView('spaces')}
+                className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-[#058ED9] hover:shadow-lg transition group text-left"
+              >
                 <div className="w-12 h-12 bg-[#03012C] rounded-lg flex items-center justify-center mb-4 group-hover:bg-[#058ED9] transition">
                   <MapPin className="w-6 h-6 text-white" />
                 </div>
@@ -248,6 +260,7 @@ function ProfessorDashboard({ onLogout }) {
             )}
           </section>
         </main>
+        )}
 
         <div className="fixed bottom-6 right-6 bg-white rounded-lg shadow-xl border-2 border-[#57CC99] p-4 animate-slide-up">
           <p className="text-sm font-semibold text-[#03012C]">Login realizado com sucesso!</p>
