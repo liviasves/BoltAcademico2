@@ -2,12 +2,52 @@ import { useState, useMemo } from 'react';
 import { Search, MapPin, Users, Calendar, Clock, Monitor, Building, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
+const mockSpaces = [
+  {
+    id: 1,
+    code: 'LAB01',
+    name: 'Laboratório de Informática 101',
+    capacity: 30,
+    location: 'Bloco A - 1º Andar',
+    type: 'laboratory',
+    availableDays: ['segunda-feira', 'quarta-feira', 'sexta-feira', 'sábado'],
+    schedule: {
+      'segunda-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+      'quarta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+      'sexta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+      'sábado': ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
+    },
+    occupiedHours: {
+      'quarta-feira': ['10:00', '11:00', '15:00']
+    },
+    softwares: ['Visual Studio Code', 'IntelliJ IDEA', 'Git', 'Node.js']
+  },
+  {
+    id: 2,
+    code: 'LAB02',
+    name: 'Laboratório de Redes',
+    capacity: 25,
+    location: 'Bloco A - 2º Andar',
+    type: 'laboratory',
+    availableDays: ['terça-feira', 'quinta-feira', 'sábado'],
+    schedule: {
+      'terça-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'],
+      'quinta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'],
+      'sábado': ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
+    },
+    occupiedHours: {
+      'quinta-feira': ['07:00', '08:00']
+    },
+    softwares: ['Cisco Packet Tracer', 'Wireshark', 'GNS3']
+  }
+];
+
 function AvailableSpaces() {
-  const { spaces, currentUser, addReservation } = useApp();
+  const { currentUser, addReservation } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showModal, setShowModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedSpace, setSelectedSpace] = useState(null);
   const [reservationData, setReservationData] = useState({
     date: '',
@@ -17,10 +57,24 @@ function AvailableSpaces() {
   });
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
-  const availableHours = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+  const today = new Date().toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
+
+  const getAvailableHoursForDay = (space, dayName) => {
+    const scheduleForDay = space.schedule[dayName] || [];
+    const occupiedForDay = space.occupiedHours?.[dayName] || [];
+
+    return scheduleForDay.filter(hour => !occupiedForDay.includes(hour));
+  };
 
   const filteredSpaces = useMemo(() => {
-    let filtered = spaces || [];
+    let filtered = mockSpaces.filter(space => {
+      if (!space.availableDays.includes(today)) {
+        return false;
+      }
+
+      const availableHours = getAvailableHoursForDay(space, today);
+      return availableHours.length > 0;
+    });
 
     if (searchTerm) {
       filtered = filtered.filter(space =>
@@ -35,27 +89,40 @@ function AvailableSpaces() {
     }
 
     return filtered;
-  }, [spaces, searchTerm, typeFilter]);
+  }, [searchTerm, typeFilter, today]);
 
   const stats = useMemo(() => {
-    const allSpaces = spaces || [];
-    const totalSpaces = allSpaces.length;
-    const availableSpaces = allSpaces.filter(s => s.status === 'active').length;
-    const occupiedSpaces = totalSpaces - availableSpaces;
-    const laboratories = allSpaces.filter(s => s.type === 'laboratory').length;
+    const totalSpaces = mockSpaces.length;
+    const availableToday = mockSpaces.filter(space => {
+      if (!space.availableDays.includes(today)) return false;
+      const availableHours = getAvailableHoursForDay(space, today);
+      return availableHours.length > 0;
+    }).length;
+    const occupiedToday = totalSpaces - availableToday;
+    const laboratories = mockSpaces.filter(s => s.type === 'laboratory').length;
 
-    return { totalSpaces, availableSpaces, occupiedSpaces, laboratories };
-  }, [spaces]);
+    return {
+      totalSpaces,
+      availableSpaces: availableToday,
+      occupiedSpaces: occupiedToday,
+      laboratories
+    };
+  }, [today]);
 
   const handleReserveClick = (space) => {
     setSelectedSpace(space);
     setReservationData({
-      date: selectedDate,
+      date: new Date().toISOString().split('T')[0],
       startTime: '',
       endTime: '',
       purpose: ''
     });
     setShowModal(true);
+  };
+
+  const handleShowSchedule = (space) => {
+    setSelectedSpace(space);
+    setShowScheduleModal(true);
   };
 
   const handleConfirmReservation = () => {
@@ -88,27 +155,18 @@ function AvailableSpaces() {
     }, 4000);
   };
 
-  const getSpaceHours = (space) => {
-    const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][new Date(selectedDate).getDay()];
-    const hours = space.availableHours?.[dayOfWeek] || [];
-
-    return hours.flatMap(range => {
-      const [start, end] = range.split('-');
-      const startHour = parseInt(start.split(':')[0]);
-      const endHour = parseInt(end.split(':')[0]);
-      const result = [];
-      for (let h = startHour; h < endHour; h++) {
-        result.push(`${h.toString().padStart(2, '0')}:00`);
-      }
-      return result;
-    });
+  const getAllHoursForDay = (dayName) => {
+    if (dayName === 'sábado') {
+      return ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+    }
+    return ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
   };
 
   return (
     <div className="flex-1 bg-[#F5EFED] p-8 overflow-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-[#03012C] mb-2">Espaços Disponíveis</h1>
-        <p className="text-gray-600">Visualize e reserve espaços acadêmicos disponíveis</p>
+        <p className="text-gray-600">Visualize e reserve espaços acadêmicos disponíveis para {today}</p>
       </div>
 
       <div className="bg-white rounded-xl p-6 mb-6 border-2 border-gray-200">
@@ -133,13 +191,6 @@ function AvailableSpaces() {
             <option value="classroom">Salas de Aula</option>
             <option value="laboratory">Laboratórios</option>
           </select>
-
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#058ED9] transition"
-          />
         </div>
       </div>
 
@@ -186,8 +237,9 @@ function AvailableSpaces() {
       ) : (
         <div className="grid grid-cols-2 gap-6">
           {filteredSpaces.map(space => {
-            const spaceHours = getSpaceHours(space);
-            const isAvailable = space.status === 'active';
+            const availableHoursToday = getAvailableHoursForDay(space, today);
+            const allHoursToday = space.schedule[today] || [];
+            const occupiedHoursToday = space.occupiedHours?.[today] || [];
 
             return (
               <div key={space.id} className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden hover:shadow-lg transition">
@@ -198,10 +250,8 @@ function AvailableSpaces() {
                         <span className="px-3 py-1 bg-[#058ED9] text-white text-sm font-bold rounded">
                           {space.code}
                         </span>
-                        <span className={`px-3 py-1 text-xs font-semibold rounded ${
-                          isAvailable ? 'bg-[#80ED99] text-[#03012C]' : 'bg-red-100 text-red-700'
-                        }`}>
-                          {isAvailable ? 'Disponível' : 'Ocupado'}
+                        <span className="px-3 py-1 text-xs font-semibold rounded bg-[#80ED99] text-[#03012C]">
+                          Disponível
                         </span>
                       </div>
                       <h3 className="text-xl font-bold text-[#03012C] mb-1">{space.name}</h3>
@@ -221,8 +271,6 @@ function AvailableSpaces() {
                     </div>
                   </div>
 
-                  <p className="text-sm text-gray-600 mb-4">{space.description}</p>
-
                   <div className="flex items-center gap-6 mb-4 text-sm">
                     <div className="flex items-center gap-2 text-gray-700">
                       <Users className="w-4 h-4 text-[#058ED9]" />
@@ -234,11 +282,11 @@ function AvailableSpaces() {
                     </div>
                   </div>
 
-                  {space.type === 'laboratory' && space.software?.length > 0 && (
+                  {space.type === 'laboratory' && space.softwares?.length > 0 && (
                     <div className="mb-4">
                       <div className="text-sm font-semibold text-[#03012C] mb-2">Softwares instalados:</div>
                       <div className="flex flex-wrap gap-2">
-                        {space.software.map((sw, idx) => (
+                        {space.softwares.map((sw, idx) => (
                           <span key={idx} className="px-2 py-1 bg-[#058ED9]/10 text-[#058ED9] text-xs font-medium rounded border border-[#058ED9]/20">
                             {sw}
                           </span>
@@ -248,19 +296,25 @@ function AvailableSpaces() {
                   )}
 
                   <div className="mb-4">
-                    <div className="text-sm font-semibold text-[#03012C] mb-2">
-                      Horários para {new Date(selectedDate).toLocaleDateString('pt-BR')}:
+                    <div className="text-sm font-semibold text-[#03012C] mb-2 flex items-center justify-between">
+                      <span>Horários para hoje ({today}):</span>
+                      <button
+                        onClick={() => handleShowSchedule(space)}
+                        className="text-[#058ED9] hover:text-[#03012C] text-xs font-medium underline"
+                      >
+                        +{availableHoursToday.length} disponíveis
+                      </button>
                     </div>
-                    <div className="grid grid-cols-6 gap-2">
-                      {availableHours.map(hour => {
-                        const isHourAvailable = spaceHours.includes(hour);
+                    <div className="grid grid-cols-5 gap-2">
+                      {allHoursToday.slice(0, 10).map(hour => {
+                        const isOccupied = occupiedHoursToday.includes(hour);
                         return (
                           <div
                             key={hour}
                             className={`text-center py-2 rounded text-xs font-semibold ${
-                              isHourAvailable
-                                ? 'bg-[#80ED99]/30 text-[#03012C] border border-[#57CC99]'
-                                : 'bg-gray-100 text-gray-400'
+                              isOccupied
+                                ? 'bg-red-100 text-red-600 border border-red-300'
+                                : 'bg-[#80ED99]/30 text-[#03012C] border border-[#57CC99]'
                             }`}
                           >
                             {hour}
@@ -268,21 +322,11 @@ function AvailableSpaces() {
                         );
                       })}
                     </div>
-                    {spaceHours.length > 0 && (
-                      <div className="text-xs text-gray-500 mt-2">
-                        +{spaceHours.length} horários disponíveis
-                      </div>
-                    )}
                   </div>
 
                   <button
                     onClick={() => handleReserveClick(space)}
-                    disabled={!isAvailable}
-                    className={`w-full py-3 rounded-lg font-semibold transition ${
-                      isAvailable
-                        ? 'bg-[#03012C] text-white hover:bg-[#058ED9]'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
+                    className="w-full py-3 rounded-lg font-semibold transition bg-[#03012C] text-white hover:bg-[#058ED9]"
                   >
                     Reservar Espaço
                   </button>
@@ -293,9 +337,63 @@ function AvailableSpaces() {
         </div>
       )}
 
+      {showScheduleModal && selectedSpace && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-8 relative max-h-[90vh] overflow-auto">
+            <button
+              onClick={() => setShowScheduleModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <h2 className="text-2xl font-bold text-[#03012C] mb-2">Todos os Horários</h2>
+            <p className="text-gray-600 mb-6">{selectedSpace.name} - {today}</p>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-6 mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-[#80ED99]/30 border border-[#57CC99]"></div>
+                  <span className="text-sm text-gray-700">Disponível</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-red-100 border border-red-300"></div>
+                  <span className="text-sm text-gray-700">Ocupado</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 gap-3">
+                {(selectedSpace.schedule[today] || []).map(hour => {
+                  const isOccupied = (selectedSpace.occupiedHours?.[today] || []).includes(hour);
+                  return (
+                    <div
+                      key={hour}
+                      className={`text-center py-3 rounded-lg text-sm font-semibold ${
+                        isOccupied
+                          ? 'bg-red-100 text-red-600 border-2 border-red-300'
+                          : 'bg-[#80ED99]/30 text-[#03012C] border-2 border-[#57CC99]'
+                      }`}
+                    >
+                      {hour}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowScheduleModal(false)}
+              className="w-full mt-6 py-3 bg-[#03012C] text-white font-semibold rounded-lg hover:bg-[#058ED9] transition"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
+
       {showModal && selectedSpace && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-8 relative">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-8 relative max-h-[90vh] overflow-auto">
             <button
               onClick={() => setShowModal(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
@@ -319,29 +417,68 @@ function AvailableSpaces() {
                 />
               </div>
 
+              <div className="mb-4">
+                <div className="text-sm font-semibold text-[#03012C] mb-3">Horários disponíveis:</div>
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-[#80ED99]/30 border border-[#57CC99]"></div>
+                    <span className="text-xs text-gray-700">Disponível</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-red-100 border border-red-300"></div>
+                    <span className="text-xs text-gray-700">Ocupado</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-5 gap-2 max-h-48 overflow-y-auto p-2 border-2 border-gray-100 rounded-lg">
+                  {(selectedSpace.schedule[today] || []).map(hour => {
+                    const isOccupied = (selectedSpace.occupiedHours?.[today] || []).includes(hour);
+                    return (
+                      <div
+                        key={hour}
+                        className={`text-center py-2 rounded text-xs font-semibold ${
+                          isOccupied
+                            ? 'bg-red-100 text-red-600 border border-red-300'
+                            : 'bg-[#80ED99]/30 text-[#03012C] border border-[#57CC99]'
+                        }`}
+                      >
+                        {hour}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-[#03012C] mb-2">
                     Horário Inicial
                   </label>
-                  <input
-                    type="time"
+                  <select
                     value={reservationData.startTime}
                     onChange={(e) => setReservationData({ ...reservationData, startTime: e.target.value })}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#058ED9] transition"
-                  />
+                  >
+                    <option value="">Selecione</option>
+                    {getAvailableHoursForDay(selectedSpace, today).map(hour => (
+                      <option key={hour} value={hour}>{hour}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-[#03012C] mb-2">
                     Horário Final
                   </label>
-                  <input
-                    type="time"
+                  <select
                     value={reservationData.endTime}
                     onChange={(e) => setReservationData({ ...reservationData, endTime: e.target.value })}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#058ED9] transition"
-                  />
+                  >
+                    <option value="">Selecione</option>
+                    {getAvailableHoursForDay(selectedSpace, today).map(hour => (
+                      <option key={hour} value={hour}>{hour}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -368,7 +505,12 @@ function AvailableSpaces() {
               </button>
               <button
                 onClick={handleConfirmReservation}
-                className="flex-1 py-3 bg-[#57CC99] text-white font-semibold rounded-lg hover:bg-[#4AB889] transition"
+                disabled={getAvailableHoursForDay(selectedSpace, today).length === 0}
+                className={`flex-1 py-3 font-semibold rounded-lg transition ${
+                  getAvailableHoursForDay(selectedSpace, today).length === 0
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-[#57CC99] text-white hover:bg-[#4AB889]'
+                }`}
               >
                 Confirmar Reserva
               </button>
