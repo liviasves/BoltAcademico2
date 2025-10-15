@@ -1,11 +1,15 @@
-import { Monitor, Plus, CheckCircle, XCircle, Clock, User, Calendar, Package } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { Monitor, Plus, CheckCircle, XCircle, Clock, User, Calendar, Package, AlertCircle } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 
 function SoftwareRequests() {
-  const { software, approveSoftware, rejectSoftware, currentUser, getUserById, addSoftware, updateSoftware, deleteSoftware } = useApp();
+  const { software, approveSoftware, rejectSoftware, currentUser, getUserById, addSoftware } = useApp();
   const [showNewModal, setShowNewModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [toast, setToast] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     version: '',
@@ -34,22 +38,55 @@ function SoftwareRequests() {
     return filtered.sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
   }, [software, filterStatus]);
 
-  const handleApprove = (softwareId) => {
-    if (window.confirm('Deseja aprovar esta solicitação de software?')) {
-      approveSoftware(softwareId, currentUser.id);
-    }
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
   };
 
-  const handleReject = (softwareId) => {
-    const reason = window.prompt('Informe o motivo da rejeição (opcional):');
-    if (reason !== null) {
-      rejectSoftware(softwareId, currentUser.id, reason || 'Sem motivo especificado');
+  const handleApproveClick = (softwareId) => {
+    setConfirmAction({
+      type: 'approve',
+      softwareId,
+      title: 'Confirmar Aprovação',
+      message: 'Deseja realmente aprovar este software? Ele ficará disponível nos laboratórios.'
+    });
+    setShowConfirmModal(true);
+  };
+
+  const handleRejectClick = (softwareId) => {
+    setConfirmAction({
+      type: 'reject',
+      softwareId,
+      title: 'Confirmar Rejeição',
+      message: 'Deseja realmente rejeitar esta solicitação?'
+    });
+    setRejectionReason('');
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmAction = () => {
+    if (confirmAction.type === 'approve') {
+      approveSoftware(confirmAction.softwareId, currentUser.id);
+      showToast('Software aprovado com sucesso!', 'success');
+    } else if (confirmAction.type === 'reject') {
+      rejectSoftware(confirmAction.softwareId, currentUser.id, rejectionReason || 'Sem motivo especificado');
+      showToast('Solicitação rejeitada com sucesso', 'success');
     }
+
+    setShowConfirmModal(false);
+    setConfirmAction(null);
+    setRejectionReason('');
+  };
+
+  const handleCancelAction = () => {
+    setShowConfirmModal(false);
+    setConfirmAction(null);
+    setRejectionReason('');
   };
 
   const handleSubmitNew = () => {
     if (!formData.name || !formData.version || !formData.category) {
-      alert('Por favor, preencha todos os campos obrigatórios.');
+      showToast('Por favor, preencha todos os campos obrigatórios', 'error');
       return;
     }
 
@@ -63,6 +100,7 @@ function SoftwareRequests() {
     };
 
     addSoftware(newSoftware);
+    showToast('Software cadastrado com sucesso!', 'success');
     setShowNewModal(false);
     setFormData({
       name: '',
@@ -287,14 +325,14 @@ function SoftwareRequests() {
                     {sw.status === 'pending' && (
                       <div className="flex gap-3">
                         <button
-                          onClick={() => handleApprove(sw.id)}
+                          onClick={() => handleApproveClick(sw.id)}
                           className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition font-semibold"
                         >
                           <CheckCircle className="w-4 h-4" />
                           Aprovar
                         </button>
                         <button
-                          onClick={() => handleReject(sw.id)}
+                          onClick={() => handleRejectClick(sw.id)}
                           className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition font-semibold"
                         >
                           <XCircle className="w-4 h-4" />
@@ -313,7 +351,7 @@ function SoftwareRequests() {
       {showNewModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
               <h2 className="text-2xl font-bold text-[#03012C]">Cadastrar Novo Software</h2>
               <button
                 onClick={() => setShowNewModal(false)}
@@ -431,6 +469,78 @@ function SoftwareRequests() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showConfirmModal && confirmAction && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  confirmAction.type === 'approve' ? 'bg-green-100' : 'bg-red-100'
+                }`}>
+                  {confirmAction.type === 'approve' ? (
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                  ) : (
+                    <AlertCircle className="w-6 h-6 text-red-600" />
+                  )}
+                </div>
+                <h2 className="text-xl font-bold text-[#03012C]">{confirmAction.title}</h2>
+              </div>
+
+              <p className="text-gray-700 mb-4">{confirmAction.message}</p>
+
+              {confirmAction.type === 'reject' && (
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-[#03012C] mb-2">
+                    Motivo da rejeição (opcional)
+                  </label>
+                  <textarea
+                    placeholder="Informe o motivo da rejeição..."
+                    rows="3"
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#058ED9] focus:border-transparent resize-none"
+                    value={rejectionReason}
+                    onChange={(e) => setRejectionReason(e.target.value)}
+                  ></textarea>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleConfirmAction}
+                  className={`flex-1 font-bold py-3 rounded-lg transition text-white ${
+                    confirmAction.type === 'approve'
+                      ? 'bg-green-500 hover:bg-green-600'
+                      : 'bg-red-500 hover:bg-red-600'
+                  }`}
+                >
+                  Confirmar
+                </button>
+                <button
+                  onClick={handleCancelAction}
+                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-3 rounded-lg transition"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className="fixed top-6 right-6 z-50 animate-slide-in">
+          <div className={`rounded-lg shadow-2xl px-6 py-4 flex items-center gap-3 min-w-[300px] ${
+            toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+          }`}>
+            {toast.type === 'success' ? (
+              <CheckCircle className="w-5 h-5 text-white flex-shrink-0" />
+            ) : (
+              <XCircle className="w-5 h-5 text-white flex-shrink-0" />
+            )}
+            <p className="text-white font-semibold">{toast.message}</p>
           </div>
         </div>
       )}
