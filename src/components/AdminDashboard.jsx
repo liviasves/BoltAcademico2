@@ -2,6 +2,7 @@ import { GraduationCap, MapPin, Users, Monitor, Building } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import SpaceManagement from './SpaceManagement';
 import UserManagement from './UserManagement';
+import SoftwareRequests from './SoftwareRequests';
 import { useApp } from '../context/AppContext';
 
 function AdminDashboard({ onLogout }) {
@@ -78,7 +79,12 @@ function AdminDashboard({ onLogout }) {
             <Users className="w-5 h-5" />
             <span>Usuários</span>
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition text-left">
+          <button
+            onClick={() => setCurrentView('software')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition text-left ${
+              currentView === 'software' ? 'bg-white/20' : 'hover:bg-white/10'
+            }`}
+          >
             <Monitor className="w-5 h-5" />
             <span>Softwares</span>
           </button>
@@ -159,7 +165,10 @@ function AdminDashboard({ onLogout }) {
                 <h3 className="font-semibold text-[#03012C]">Gerenciar Usuários</h3>
               </button>
 
-              <button className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-[#058ED9] hover:shadow-lg transition group">
+              <button
+                onClick={() => setCurrentView('software')}
+                className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-[#058ED9] hover:shadow-lg transition group"
+              >
                 <div className="w-12 h-12 bg-[#03012C] rounded-lg flex items-center justify-center mb-4 group-hover:bg-[#058ED9] transition">
                   <Monitor className="w-6 h-6 text-white" />
                 </div>
@@ -228,6 +237,8 @@ function AdminDashboard({ onLogout }) {
           <SpaceManagement />
         ) : currentView === 'users' ? (
           <UserManagement />
+        ) : currentView === 'software' ? (
+          <SoftwareRequests />
         ) : null}
 
         <div className="fixed bottom-6 right-6 bg-white rounded-lg shadow-xl border-2 border-[#57CC99] p-4 animate-slide-up">

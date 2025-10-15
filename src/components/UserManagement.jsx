@@ -1,10 +1,10 @@
-import { Users, Plus, Mail, Shield, Building2, Edit2 } from 'lucide-react';
+import { Users, Plus, Mail, Shield, Building2, Edit2, Trash2 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import UserModal from './UserModal';
 
 function UserManagement() {
-  const { users } = useApp();
+  const { users, deleteUser } = useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
 
@@ -35,6 +35,12 @@ function UserManagement() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingUser(null);
+  };
+
+  const handleDeleteUser = (userId) => {
+    if (window.confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.')) {
+      deleteUser(userId);
+    }
   };
 
   return (
@@ -121,13 +127,21 @@ function UserManagement() {
                   )}
                 </div>
 
-                <button
-                  onClick={() => handleEditUser(user)}
-                  className="w-full bg-[#03012C] hover:bg-[#058ED9] text-white font-semibold py-2 px-4 rounded-lg transition flex items-center justify-center gap-2"
-                >
-                  <Edit2 className="w-4 h-4" />
-                  Editar
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEditUser(user)}
+                    className="flex-1 bg-[#03012C] hover:bg-[#058ED9] text-white font-semibold py-2 px-4 rounded-lg transition flex items-center justify-center gap-2"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => handleDeleteUser(user.id)}
+                    className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center justify-center"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>

@@ -123,7 +123,9 @@ const initialSoftware = [
     requestDate: new Date('2024-01-15').toISOString(),
     approvedDate: new Date('2024-01-16').toISOString(),
     approvedBy: 1,
-    description: 'Editor de código moderno e versátil'
+    description: 'Editor de código moderno e versátil',
+    category: 'Desenvolvimento',
+    type: 'free'
   },
   {
     id: 2,
@@ -132,7 +134,60 @@ const initialSoftware = [
     status: 'pending',
     requestedBy: 2,
     requestDate: new Date('2024-02-01').toISOString(),
-    description: 'Software de edição de imagens profissional'
+    description: 'Software de edição de imagens profissional',
+    category: 'Design',
+    type: 'proprietary'
+  },
+  {
+    id: 3,
+    name: 'IntelliJ IDEA',
+    version: '2023.3',
+    status: 'approved',
+    requestedBy: 2,
+    requestDate: new Date('2024-01-10').toISOString(),
+    approvedDate: new Date('2024-01-11').toISOString(),
+    approvedBy: 1,
+    description: 'IDE poderosa para desenvolvimento Java',
+    category: 'Desenvolvimento',
+    type: 'proprietary'
+  },
+  {
+    id: 4,
+    name: 'Cisco Packet Tracer',
+    version: '8.2',
+    status: 'pending',
+    requestedBy: 2,
+    requestDate: new Date('2024-10-10').toISOString(),
+    description: 'Simulador de redes Cisco para ensino',
+    category: 'Redes',
+    type: 'free'
+  },
+  {
+    id: 5,
+    name: 'AutoCAD',
+    version: '2024',
+    status: 'rejected',
+    requestedBy: 2,
+    requestDate: new Date('2024-09-20').toISOString(),
+    rejectedDate: new Date('2024-09-21').toISOString(),
+    rejectedBy: 1,
+    rejectionReason: 'Custo elevado de licenciamento',
+    description: 'Software de desenho técnico e modelagem 3D',
+    category: 'Design',
+    type: 'proprietary'
+  },
+  {
+    id: 6,
+    name: 'Python',
+    version: '3.12',
+    status: 'approved',
+    requestedBy: 2,
+    requestDate: new Date('2024-01-05').toISOString(),
+    approvedDate: new Date('2024-01-06').toISOString(),
+    approvedBy: 1,
+    description: 'Linguagem de programação interpretada de alto nível',
+    category: 'Desenvolvimento',
+    type: 'free'
   }
 ];
 
