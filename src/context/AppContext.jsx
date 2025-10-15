@@ -58,14 +58,12 @@ const initialSpaces = [
     status: 'active',
     type: 'laboratory',
     software: ['Visual Studio Code', 'IntelliJ IDEA', 'Git', 'Node.js'],
-    availableHours: {
-      monday: ['07:00-12:00', '13:00-18:00', '19:00-22:00'],
-      tuesday: ['07:00-12:00', '13:00-18:00', '19:00-22:00'],
-      wednesday: ['07:00-12:00', '13:00-18:00', '19:00-22:00'],
-      thursday: ['07:00-12:00', '13:00-18:00', '19:00-22:00'],
-      friday: ['07:00-12:00', '13:00-18:00', '19:00-22:00'],
-      saturday: ['08:00-12:00'],
-      sunday: []
+    availableDays: ['segunda-feira', 'quarta-feira', 'sexta-feira', 'sábado'],
+    schedule: {
+      'segunda-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+      'quarta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+      'sexta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+      'sábado': ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
     },
     createdAt: new Date().toISOString()
   },
@@ -79,14 +77,11 @@ const initialSpaces = [
     status: 'active',
     type: 'laboratory',
     software: ['Cisco Packet Tracer', 'Wireshark', 'GNS3'],
-    availableHours: {
-      monday: ['07:00-12:00', '13:00-18:00'],
-      tuesday: ['07:00-12:00', '13:00-18:00'],
-      wednesday: ['07:00-12:00', '13:00-18:00'],
-      thursday: ['07:00-12:00', '13:00-18:00'],
-      friday: ['07:00-12:00', '13:00-18:00'],
-      saturday: [],
-      sunday: []
+    availableDays: ['terça-feira', 'quinta-feira', 'sábado'],
+    schedule: {
+      'terça-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'],
+      'quinta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'],
+      'sábado': ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
     },
     createdAt: new Date().toISOString()
   },
@@ -97,17 +92,16 @@ const initialSpaces = [
     description: 'Sala de aula tradicional com projetor multimídia',
     capacity: 40,
     location: 'Bloco B - 1º Andar',
-    status: 'inactive',
+    status: 'active',
     type: 'classroom',
     software: [],
-    availableHours: {
-      monday: ['07:00-12:00', '13:00-18:00', '19:00-22:00'],
-      tuesday: ['07:00-12:00', '13:00-18:00', '19:00-22:00'],
-      wednesday: ['07:00-12:00', '13:00-18:00', '19:00-22:00'],
-      thursday: ['07:00-12:00', '13:00-18:00', '19:00-22:00'],
-      friday: ['07:00-12:00', '13:00-18:00', '19:00-22:00'],
-      saturday: ['08:00-12:00'],
-      sunday: []
+    availableDays: ['segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira'],
+    schedule: {
+      'segunda-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+      'terça-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+      'quarta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+      'quinta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+      'sexta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00']
     },
     createdAt: new Date().toISOString()
   }
@@ -191,39 +185,47 @@ const initialSoftware = [
   }
 ];
 
+const getTodayDate = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const initialReservations = [
   {
     id: 1,
     spaceId: 1,
     userId: 2,
-    date: '2024-09-08',
-    startTime: '07:00',
-    endTime: '12:00',
-    status: 'completed',
+    date: getTodayDate(),
+    startTime: '10:00',
+    endTime: '11:00',
+    status: 'confirmed',
     purpose: 'Aula de Programação Web',
-    createdAt: new Date('2024-09-01').toISOString()
+    createdAt: new Date().toISOString()
   },
   {
     id: 2,
-    spaceId: 2,
+    spaceId: 1,
     userId: 2,
-    date: '2024-09-08',
-    startTime: '07:00',
-    endTime: '12:00',
-    status: 'completed',
-    purpose: 'Aula de Redes de Computadores',
-    createdAt: new Date('2024-09-01').toISOString()
+    date: getTodayDate(),
+    startTime: '15:00',
+    endTime: '16:00',
+    status: 'confirmed',
+    purpose: 'Laboratório de Estruturas de Dados',
+    createdAt: new Date().toISOString()
   },
   {
     id: 3,
-    spaceId: 1,
+    spaceId: 2,
     userId: 2,
-    date: '2024-09-08',
+    date: getTodayDate(),
     startTime: '07:00',
-    endTime: '12:00',
-    status: 'completed',
-    purpose: 'Laboratório de Banco de Dados',
-    createdAt: new Date('2024-09-01').toISOString()
+    endTime: '08:00',
+    status: 'confirmed',
+    purpose: 'Aula de Redes de Computadores',
+    createdAt: new Date().toISOString()
   }
 ];
 

@@ -1,49 +1,9 @@
 import { useState, useMemo } from 'react';
-import { Search, MapPin, Users, Calendar, Clock, Monitor, Building, X } from 'lucide-react';
+import { Search, MapPin, Users, Calendar, Monitor, Building, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
-const mockSpaces = [
-  {
-    id: 1,
-    code: 'LAB01',
-    name: 'Laboratório de Informática 101',
-    capacity: 30,
-    location: 'Bloco A - 1º Andar',
-    type: 'laboratory',
-    availableDays: ['segunda-feira', 'quarta-feira', 'sexta-feira', 'sábado'],
-    schedule: {
-      'segunda-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
-      'quarta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
-      'sexta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
-      'sábado': ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
-    },
-    occupiedHours: {
-      'quarta-feira': ['10:00', '11:00', '15:00']
-    },
-    softwares: ['Visual Studio Code', 'IntelliJ IDEA', 'Git', 'Node.js']
-  },
-  {
-    id: 2,
-    code: 'LAB02',
-    name: 'Laboratório de Redes',
-    capacity: 25,
-    location: 'Bloco A - 2º Andar',
-    type: 'laboratory',
-    availableDays: ['terça-feira', 'quinta-feira', 'sábado'],
-    schedule: {
-      'terça-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'],
-      'quinta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'],
-      'sábado': ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
-    },
-    occupiedHours: {
-      'quinta-feira': ['07:00', '08:00']
-    },
-    softwares: ['Cisco Packet Tracer', 'Wireshark', 'GNS3']
-  }
-];
-
 function AvailableSpaces() {
-  const { currentUser, addReservation } = useApp();
+  const { spaces, reservations, currentUser, addReservation } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [showModal, setShowModal] = useState(false);
@@ -58,21 +18,26 @@ function AvailableSpaces() {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   const today = new Date().toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
+  const currentDate = new Date().toISOString().split('T')[0];
 
-  const getAvailableHoursForDay = (space, dayName) => {
-    const scheduleForDay = space.schedule[dayName] || [];
-    const occupiedForDay = space.occupiedHours?.[dayName] || [];
+  const getOccupiedHoursForSpace = (spaceId, date) => {
+    return reservations
+      .filter(r => r.spaceId === spaceId && r.date === date && r.status === 'confirmed')
+      .map(r => r.startTime);
+  };
 
-    return scheduleForDay.filter(hour => !occupiedForDay.includes(hour));
+  const getAvailableHoursForDay = (space, dayName, date) => {
+    const scheduleForDay = space.schedule?.[dayName] || [];
+    const occupiedHours = getOccupiedHoursForSpace(space.id, date);
+    return scheduleForDay.filter(hour => !occupiedHours.includes(hour));
   };
 
   const filteredSpaces = useMemo(() => {
-    let filtered = mockSpaces.filter(space => {
-      if (!space.availableDays.includes(today)) {
-        return false;
-      }
+    let filtered = spaces.filter(space => {
+      if (space.status !== 'active') return false;
+      if (!space.availableDays?.includes(today)) return false;
 
-      const availableHours = getAvailableHoursForDay(space, today);
+      const availableHours = getAvailableHoursForDay(space, today, currentDate);
       return availableHours.length > 0;
     });
 
@@ -89,17 +54,18 @@ function AvailableSpaces() {
     }
 
     return filtered;
-  }, [searchTerm, typeFilter, today]);
+  }, [spaces, reservations, searchTerm, typeFilter, today, currentDate]);
 
   const stats = useMemo(() => {
-    const totalSpaces = mockSpaces.length;
-    const availableToday = mockSpaces.filter(space => {
-      if (!space.availableDays.includes(today)) return false;
-      const availableHours = getAvailableHoursForDay(space, today);
+    const totalSpaces = spaces.length;
+    const availableToday = spaces.filter(space => {
+      if (space.status !== 'active') return false;
+      if (!space.availableDays?.includes(today)) return false;
+      const availableHours = getAvailableHoursForDay(space, today, currentDate);
       return availableHours.length > 0;
     }).length;
     const occupiedToday = totalSpaces - availableToday;
-    const laboratories = mockSpaces.filter(s => s.type === 'laboratory').length;
+    const laboratories = spaces.filter(s => s.type === 'laboratory').length;
 
     return {
       totalSpaces,
@@ -107,12 +73,12 @@ function AvailableSpaces() {
       occupiedSpaces: occupiedToday,
       laboratories
     };
-  }, [today]);
+  }, [spaces, reservations, today, currentDate]);
 
   const handleReserveClick = (space) => {
     setSelectedSpace(space);
     setReservationData({
-      date: new Date().toISOString().split('T')[0],
+      date: currentDate,
       startTime: '',
       endTime: '',
       purpose: ''
@@ -153,13 +119,6 @@ function AvailableSpaces() {
     setTimeout(() => {
       setShowSuccessMessage(false);
     }, 4000);
-  };
-
-  const getAllHoursForDay = (dayName) => {
-    if (dayName === 'sábado') {
-      return ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
-    }
-    return ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
   };
 
   return (
@@ -232,14 +191,14 @@ function AvailableSpaces() {
         <div className="bg-white rounded-xl p-12 border-2 border-gray-200 text-center">
           <Building className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-[#03012C] mb-2">Nenhum espaço encontrado</h3>
-          <p className="text-gray-600">Não há espaços que correspondam aos filtros selecionados.</p>
+          <p className="text-gray-600">Não há espaços disponíveis para {today} que correspondam aos filtros selecionados.</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-6">
           {filteredSpaces.map(space => {
-            const availableHoursToday = getAvailableHoursForDay(space, today);
-            const allHoursToday = space.schedule[today] || [];
-            const occupiedHoursToday = space.occupiedHours?.[today] || [];
+            const availableHoursToday = getAvailableHoursForDay(space, today, currentDate);
+            const allHoursToday = space.schedule?.[today] || [];
+            const occupiedHoursToday = getOccupiedHoursForSpace(space.id, currentDate);
 
             return (
               <div key={space.id} className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden hover:shadow-lg transition">
@@ -271,6 +230,8 @@ function AvailableSpaces() {
                     </div>
                   </div>
 
+                  <p className="text-sm text-gray-600 mb-4">{space.description}</p>
+
                   <div className="flex items-center gap-6 mb-4 text-sm">
                     <div className="flex items-center gap-2 text-gray-700">
                       <Users className="w-4 h-4 text-[#058ED9]" />
@@ -282,11 +243,11 @@ function AvailableSpaces() {
                     </div>
                   </div>
 
-                  {space.type === 'laboratory' && space.softwares?.length > 0 && (
+                  {space.type === 'laboratory' && space.software?.length > 0 && (
                     <div className="mb-4">
                       <div className="text-sm font-semibold text-[#03012C] mb-2">Softwares instalados:</div>
                       <div className="flex flex-wrap gap-2">
-                        {space.softwares.map((sw, idx) => (
+                        {space.software.map((sw, idx) => (
                           <span key={idx} className="px-2 py-1 bg-[#058ED9]/10 text-[#058ED9] text-xs font-medium rounded border border-[#058ED9]/20">
                             {sw}
                           </span>
@@ -363,8 +324,8 @@ function AvailableSpaces() {
               </div>
 
               <div className="grid grid-cols-4 gap-3">
-                {(selectedSpace.schedule[today] || []).map(hour => {
-                  const isOccupied = (selectedSpace.occupiedHours?.[today] || []).includes(hour);
+                {(selectedSpace.schedule?.[today] || []).map(hour => {
+                  const isOccupied = getOccupiedHoursForSpace(selectedSpace.id, currentDate).includes(hour);
                   return (
                     <div
                       key={hour}
@@ -430,8 +391,8 @@ function AvailableSpaces() {
                   </div>
                 </div>
                 <div className="grid grid-cols-5 gap-2 max-h-48 overflow-y-auto p-2 border-2 border-gray-100 rounded-lg">
-                  {(selectedSpace.schedule[today] || []).map(hour => {
-                    const isOccupied = (selectedSpace.occupiedHours?.[today] || []).includes(hour);
+                  {(selectedSpace.schedule?.[today] || []).map(hour => {
+                    const isOccupied = getOccupiedHoursForSpace(selectedSpace.id, currentDate).includes(hour);
                     return (
                       <div
                         key={hour}
@@ -459,7 +420,7 @@ function AvailableSpaces() {
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#058ED9] transition"
                   >
                     <option value="">Selecione</option>
-                    {getAvailableHoursForDay(selectedSpace, today).map(hour => (
+                    {getAvailableHoursForDay(selectedSpace, today, currentDate).map(hour => (
                       <option key={hour} value={hour}>{hour}</option>
                     ))}
                   </select>
@@ -475,7 +436,7 @@ function AvailableSpaces() {
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#058ED9] transition"
                   >
                     <option value="">Selecione</option>
-                    {getAvailableHoursForDay(selectedSpace, today).map(hour => (
+                    {getAvailableHoursForDay(selectedSpace, today, currentDate).map(hour => (
                       <option key={hour} value={hour}>{hour}</option>
                     ))}
                   </select>
@@ -505,9 +466,9 @@ function AvailableSpaces() {
               </button>
               <button
                 onClick={handleConfirmReservation}
-                disabled={getAvailableHoursForDay(selectedSpace, today).length === 0}
+                disabled={getAvailableHoursForDay(selectedSpace, today, currentDate).length === 0}
                 className={`flex-1 py-3 font-semibold rounded-lg transition ${
-                  getAvailableHoursForDay(selectedSpace, today).length === 0
+                  getAvailableHoursForDay(selectedSpace, today, currentDate).length === 0
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-[#57CC99] text-white hover:bg-[#4AB889]'
                 }`}
