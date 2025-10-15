@@ -2,6 +2,7 @@ import { GraduationCap, Calendar, MapPin, Monitor, Clock } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import AvailableSpaces from './AvailableSpaces';
+import SoftwareRequest from './SoftwareRequest';
 
 function ProfessorDashboard({ onLogout }) {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -107,7 +108,12 @@ function ProfessorDashboard({ onLogout }) {
             <MapPin className="w-5 h-5" />
             <span>Espaços Disponíveis</span>
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition text-left">
+          <button
+            onClick={() => setCurrentView('software')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition text-left ${
+              currentView === 'software' ? 'bg-white/20' : 'hover:bg-white/10'
+            }`}
+          >
             <Monitor className="w-5 h-5" />
             <span>Solicitar Software</span>
           </button>
@@ -148,6 +154,8 @@ function ProfessorDashboard({ onLogout }) {
 
         {currentView === 'spaces' ? (
           <AvailableSpaces />
+        ) : currentView === 'software' ? (
+          <SoftwareRequest />
         ) : (
         <main className="flex-1 p-8 overflow-auto">
           <div className="bg-gradient-to-r from-[#058ED9] to-[#0B79BE] rounded-2xl p-8 mb-8 text-white shadow-lg">
@@ -194,7 +202,10 @@ function ProfessorDashboard({ onLogout }) {
                 <p className="text-sm text-gray-600">Consulte espaços para reservar</p>
               </button>
 
-              <button className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-[#058ED9] hover:shadow-lg transition group text-left">
+              <button
+                onClick={() => setCurrentView('software')}
+                className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-[#058ED9] hover:shadow-lg transition group text-left"
+              >
                 <div className="w-12 h-12 bg-[#03012C] rounded-lg flex items-center justify-center mb-4 group-hover:bg-[#058ED9] transition">
                   <Monitor className="w-6 h-6 text-white" />
                 </div>

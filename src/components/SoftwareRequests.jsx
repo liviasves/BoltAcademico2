@@ -1,22 +1,14 @@
-import { Monitor, Plus, CheckCircle, XCircle, Clock, User, Calendar, Package, AlertCircle } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
+import { Monitor, CheckCircle, XCircle, Clock, User, Calendar, Package, AlertCircle } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 
 function SoftwareRequests() {
-  const { software, approveSoftware, rejectSoftware, currentUser, getUserById, addSoftware } = useApp();
-  const [showNewModal, setShowNewModal] = useState(false);
+  const { software, approveSoftware, rejectSoftware, currentUser, getUserById } = useApp();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [toast, setToast] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    version: '',
-    description: '',
-    category: '',
-    type: 'free'
-  });
 
   const stats = useMemo(() => {
     const allSoftware = software || [];
@@ -84,33 +76,6 @@ function SoftwareRequests() {
     setRejectionReason('');
   };
 
-  const handleSubmitNew = () => {
-    if (!formData.name || !formData.version || !formData.category) {
-      showToast('Por favor, preencha todos os campos obrigatórios', 'error');
-      return;
-    }
-
-    const newSoftware = {
-      ...formData,
-      status: 'approved',
-      requestedBy: currentUser.id,
-      requestDate: new Date().toISOString(),
-      approvedDate: new Date().toISOString(),
-      approvedBy: currentUser.id
-    };
-
-    addSoftware(newSoftware);
-    showToast('Software cadastrado com sucesso!', 'success');
-    setShowNewModal(false);
-    setFormData({
-      name: '',
-      version: '',
-      description: '',
-      category: '',
-      type: 'free'
-    });
-  };
-
   const getStatusBadge = (status) => {
     switch (status) {
       case 'pending':
@@ -154,18 +119,11 @@ function SoftwareRequests() {
   return (
     <div className="flex-1 p-8 overflow-auto bg-[#F5EFED]">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+        <div className="mb-8">
           <div>
             <h1 className="text-3xl font-bold text-[#03012C] mb-2">Solicitações de Softwares</h1>
             <p className="text-gray-600">Gerencie as solicitações de instalação de softwares enviadas pelos professores</p>
           </div>
-          <button
-            onClick={() => setShowNewModal(true)}
-            className="flex items-center gap-2 bg-[#03012C] hover:bg-[#058ED9] text-white font-semibold px-6 py-3 rounded-lg transition shadow-lg"
-          >
-            <Plus className="w-5 h-5" />
-            Novo Software
-          </button>
         </div>
 
         <div className="grid grid-cols-4 gap-6 mb-8">
@@ -347,131 +305,6 @@ function SoftwareRequests() {
           </div>
         )}
       </div>
-
-      {showNewModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
-              <h2 className="text-2xl font-bold text-[#03012C]">Cadastrar Novo Software</h2>
-              <button
-                onClick={() => setShowNewModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition"
-              >
-                <XCircle className="w-5 h-5 text-gray-600" />
-              </button>
-            </div>
-
-            <div className="p-6">
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-[#03012C] mb-2">
-                  Nome do Software *
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ex: Visual Studio Code"
-                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#058ED9] focus:border-transparent"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-semibold text-[#03012C] mb-2">
-                    Versão *
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ex: 1.85.0"
-                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#058ED9] focus:border-transparent"
-                    value={formData.version}
-                    onChange={(e) => setFormData({ ...formData, version: e.target.value })}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-[#03012C] mb-2">
-                    Categoria *
-                  </label>
-                  <select
-                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#058ED9] focus:border-transparent"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  >
-                    <option value="">Selecione...</option>
-                    <option value="Desenvolvimento">Desenvolvimento</option>
-                    <option value="Design">Design</option>
-                    <option value="Produtividade">Produtividade</option>
-                    <option value="Educação">Educação</option>
-                    <option value="Redes">Redes</option>
-                    <option value="Segurança">Segurança</option>
-                    <option value="Banco de Dados">Banco de Dados</option>
-                    <option value="Outros">Outros</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-[#03012C] mb-2">
-                  Tipo *
-                </label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="type"
-                      value="free"
-                      checked={formData.type === 'free'}
-                      onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                      className="w-4 h-4 accent-[#058ED9]"
-                    />
-                    <span className="text-sm text-gray-700">Livre</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="type"
-                      value="proprietary"
-                      checked={formData.type === 'proprietary'}
-                      onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                      className="w-4 h-4 accent-[#058ED9]"
-                    />
-                    <span className="text-sm text-gray-700">Proprietário</span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-[#03012C] mb-2">
-                  Descrição
-                </label>
-                <textarea
-                  placeholder="Descreva o software e sua finalidade..."
-                  rows="4"
-                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#058ED9] focus:border-transparent resize-none"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                ></textarea>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={handleSubmitNew}
-                  className="flex-1 bg-[#03012C] hover:bg-[#058ED9] text-white font-bold py-3 rounded-lg transition"
-                >
-                  Cadastrar Software
-                </button>
-                <button
-                  onClick={() => setShowNewModal(false)}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-3 rounded-lg transition"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showConfirmModal && confirmAction && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
