@@ -20,6 +20,7 @@ function AvailableSpaces() {
   const [rangeStart, setRangeStart] = useState(null);
   const [purpose, setPurpose] = useState('');
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [conflictError, setConflictError] = useState(null);
 
   const availableHours = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
 
@@ -72,6 +73,7 @@ function AvailableSpaces() {
     setSelectedHours([]);
     setRangeStart(null);
     setPurpose('');
+    setConflictError(null);
     setShowModal(true);
   };
 
@@ -92,6 +94,30 @@ function AvailableSpaces() {
     }
   };
 
+  const checkTimeConflict = (selectedHours, date) => {
+    const professorReservations = reservations.filter(r =>
+      r.userId === currentUser?.id &&
+      r.date === date &&
+      r.status === 'confirmed'
+    );
+
+    for (const reservation of professorReservations) {
+      const reservedHours = reservation.hours || [];
+      const hasConflict = selectedHours.some(hour => reservedHours.includes(hour));
+
+      if (hasConflict) {
+        const space = spaces.find(s => s.id === reservation.spaceId);
+        return {
+          hasConflict: true,
+          conflictingSpace: space?.name || 'Espaço desconhecido',
+          conflictingHours: reservedHours.filter(h => selectedHours.includes(h))
+        };
+      }
+    }
+
+    return { hasConflict: false };
+  };
+
   const handleConfirmReservation = () => {
     if (selectedHours.length === 0) {
       alert('Por favor, selecione pelo menos um horário.');
@@ -100,6 +126,16 @@ function AvailableSpaces() {
 
     if (!purpose.trim()) {
       alert('Por favor, informe a finalidade da reserva.');
+      return;
+    }
+
+    const conflict = checkTimeConflict(selectedHours, selectedDate);
+
+    if (conflict.hasConflict) {
+      setConflictError({
+        space: conflict.conflictingSpace,
+        hours: conflict.conflictingHours
+      });
       return;
     }
 
@@ -115,6 +151,7 @@ function AvailableSpaces() {
 
     setShowModal(false);
     setSelectedHours([]);
+    setRangeStart(null);
     setPurpose('');
     setShowSuccessMessage(true);
 
@@ -375,6 +412,31 @@ function AvailableSpaces() {
 
               <h2 className="text-2xl font-bold text-[#03012C] mb-2">Reservar Espaço</h2>
               <p className="text-gray-600 mb-6">{selectedSpace.name}</p>
+
+              {conflictError && (
+                <div className="mb-4 bg-red-50 border-2 border-red-300 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-red-800 mb-1">
+                        Você já possui uma reserva neste horário. Verifique suas reservas antes de continuar.
+                      </p>
+                      <p className="text-xs text-red-700 mb-2">
+                        <strong>Espaço:</strong> {conflictError.space}
+                      </p>
+                      <p className="text-xs text-red-700">
+                        <strong>Horários conflitantes:</strong> {conflictError.hours.join(', ')}
+                      </p>
+                      <button
+                        onClick={() => setConflictError(null)}
+                        className="mt-2 text-xs text-red-600 hover:text-red-800 font-semibold underline"
+                      >
+                        Fechar aviso
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-4">
                 <div>
