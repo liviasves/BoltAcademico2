@@ -17,6 +17,7 @@ function AvailableSpaces() {
   const [showModal, setShowModal] = useState(false);
   const [selectedSpace, setSelectedSpace] = useState(null);
   const [selectedHours, setSelectedHours] = useState([]);
+  const [rangeStart, setRangeStart] = useState(null);
   const [purpose, setPurpose] = useState('');
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
@@ -69,18 +70,26 @@ function AvailableSpaces() {
 
     setSelectedSpace(space);
     setSelectedHours([]);
+    setRangeStart(null);
     setPurpose('');
     setShowModal(true);
   };
 
-  const handleHourClick = (hour) => {
-    setSelectedHours(prev => {
-      if (prev.includes(hour)) {
-        return prev.filter(h => h !== hour);
-      } else {
-        return [...prev, hour].sort();
-      }
-    });
+  const handleHourClick = (hour, availableHours) => {
+    if (!rangeStart) {
+      setRangeStart(hour);
+      setSelectedHours([hour]);
+    } else {
+      const startIndex = availableHours.indexOf(rangeStart);
+      const endIndex = availableHours.indexOf(hour);
+
+      const minIndex = Math.min(startIndex, endIndex);
+      const maxIndex = Math.max(startIndex, endIndex);
+
+      const rangeHours = availableHours.slice(minIndex, maxIndex + 1);
+      setSelectedHours(rangeHours);
+      setRangeStart(null);
+    }
   };
 
   const handleConfirmReservation = () => {
@@ -127,6 +136,16 @@ function AvailableSpaces() {
     const reservedHours = spaceReservations.flatMap(r => r.hours || []);
 
     return hours.filter(hour => !reservedHours.includes(hour));
+  };
+
+  const getOccupiedHours = (space, dateString) => {
+    const spaceReservations = reservations.filter(r =>
+      r.spaceId === space.id &&
+      r.date === dateString &&
+      r.status === 'confirmed'
+    );
+
+    return spaceReservations.flatMap(r => r.hours || []);
   };
 
   return (
@@ -340,7 +359,9 @@ function AvailableSpaces() {
 
       {showModal && selectedSpace && (() => {
         const modalSpaceHours = getSpaceHours(selectedSpace, selectedDate);
+        const occupiedHours = getOccupiedHours(selectedSpace, selectedDate);
         const dayOfWeek = getDayOfWeekInPortuguese(selectedDate);
+        const allScheduledHours = selectedSpace.schedule?.[dayOfWeek] || [];
 
         return (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -384,30 +405,61 @@ function AvailableSpaces() {
                       <span>Selecionado</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-gray-300 rounded"></div>
+                      <div className="w-4 h-4 bg-red-400 rounded"></div>
                       <span>Ocupado</span>
                     </div>
                   </div>
 
-                  {modalSpaceHours.length > 0 ? (
-                    <div className="grid grid-cols-5 gap-2">
-                      {modalSpaceHours.map(hour => {
-                        const isSelected = selectedHours.includes(hour);
-                        return (
-                          <button
-                            key={hour}
-                            onClick={() => handleHourClick(hour)}
-                            className={`text-center py-3 rounded text-sm font-semibold transition ${
-                              isSelected
-                                ? 'bg-[#058ED9] text-white border-2 border-[#058ED9]'
-                                : 'bg-[#80ED99]/30 text-[#03012C] border-2 border-[#57CC99] hover:bg-[#80ED99]/50'
-                            }`}
-                          >
-                            {hour}
-                          </button>
-                        );
-                      })}
+                  {rangeStart && (
+                    <div className="mb-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                      <p className="text-sm text-yellow-800 font-semibold">
+                        Horário inicial selecionado: {rangeStart}
+                      </p>
+                      <p className="text-xs text-yellow-700 mt-1">
+                        Clique no horário final para completar a seleção do intervalo
+                      </p>
                     </div>
+                  )}
+
+                  {allScheduledHours.length > 0 ? (
+                    <>
+                      <div className="grid grid-cols-5 gap-2">
+                        {allScheduledHours.map(hour => {
+                          const isOccupied = occupiedHours.includes(hour);
+                          const isSelected = selectedHours.includes(hour);
+                          const isRangeStart = hour === rangeStart;
+                          return (
+                            <button
+                              key={hour}
+                              onClick={() => !isOccupied && handleHourClick(hour, modalSpaceHours)}
+                              disabled={isOccupied}
+                              className={`text-center py-3 rounded text-sm font-semibold transition ${
+                                isOccupied
+                                  ? 'bg-red-400 text-white border-2 border-red-500 cursor-not-allowed opacity-60'
+                                  : isSelected
+                                  ? 'bg-[#058ED9] text-white border-2 border-[#058ED9]'
+                                  : isRangeStart
+                                  ? 'bg-yellow-200 text-[#03012C] border-2 border-yellow-400'
+                                  : 'bg-[#80ED99]/30 text-[#03012C] border-2 border-[#57CC99] hover:bg-[#80ED99]/50'
+                              }`}
+                            >
+                              {hour}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {selectedHours.length > 0 && (
+                        <button
+                          onClick={() => {
+                            setSelectedHours([]);
+                            setRangeStart(null);
+                          }}
+                          className="mt-3 text-sm text-[#058ED9] hover:text-[#03012C] font-semibold underline"
+                        >
+                          Limpar seleção
+                        </button>
+                      )}
+                    </>
                   ) : (
                     <div className="bg-gray-50 rounded-lg p-4 text-center text-gray-600">
                       Nenhum horário disponível para {dayOfWeek}
