@@ -76,8 +76,9 @@ function SpaceManagement() {
     const activeSpaces = allSpaces.filter(s => s.status === 'active').length;
     const inactiveSpaces = allSpaces.filter(s => s.status === 'inactive').length;
     const laboratories = allSpaces.filter(s => s.type === 'laboratory').length;
+    const classrooms = allSpaces.filter(s => s.type === 'classroom').length;
 
-    return { totalSpaces, activeSpaces, inactiveSpaces, laboratories };
+    return { totalSpaces, activeSpaces, inactiveSpaces, laboratories, classrooms };
   }, [spaces]);
 
   const resetForm = () => {
@@ -282,7 +283,7 @@ function SpaceManagement() {
           </button>
         </div>
 
-        <div className="grid grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-5 gap-6 mb-8">
           <div className="bg-white rounded-xl p-6 border-2 border-gray-200 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-gray-600">Total de Espaços</h3>
@@ -317,6 +318,14 @@ function SpaceManagement() {
               <Monitor className="w-5 h-5 text-[#058ED9]" />
             </div>
             <div className="text-3xl font-bold text-[#03012C]">{stats.laboratories}</div>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 border-2 border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-600">Salas de Aula</h3>
+              <Building className="w-5 h-5 text-[#058ED9]" />
+            </div>
+            <div className="text-3xl font-bold text-[#03012C]">{stats.classrooms}</div>
           </div>
         </div>
 

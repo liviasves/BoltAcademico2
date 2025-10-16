@@ -66,12 +66,14 @@ function AvailableSpaces() {
     }).length;
     const occupiedToday = totalSpaces - availableToday;
     const laboratories = spaces.filter(s => s.type === 'laboratory').length;
+    const classrooms = spaces.filter(s => s.type === 'classroom').length;
 
     return {
       totalSpaces,
       availableSpaces: availableToday,
       occupiedSpaces: occupiedToday,
-      laboratories
+      laboratories,
+      classrooms
     };
   }, [spaces, reservations, today, currentDate]);
 
@@ -153,7 +155,7 @@ function AvailableSpaces() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-5 gap-6 mb-8">
         <div className="bg-white rounded-xl p-6 border-2 border-gray-200">
           <div className="flex items-center justify-between mb-3">
             <div className="text-sm font-semibold text-gray-600">Total de Espaços</div>
@@ -184,6 +186,14 @@ function AvailableSpaces() {
             <Monitor className="w-5 h-5 text-[#058ED9]" />
           </div>
           <div className="text-4xl font-bold text-[#03012C]">{stats.laboratories}</div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 border-2 border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-semibold text-gray-600">Salas de Aula</div>
+            <Building className="w-5 h-5 text-[#058ED9]" />
+          </div>
+          <div className="text-4xl font-bold text-[#03012C]">{stats.classrooms}</div>
         </div>
       </div>
 

@@ -1,10 +1,11 @@
-import { X, User, Mail, Lock, Shield, Building2 } from 'lucide-react';
+import { X, User, Mail, Lock, Shield, Building2, Eye, EyeOff } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 
 function UserModal({ user, onClose }) {
   const { addUser, updateUser } = useApp();
   const isEditing = !!user;
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -152,13 +153,24 @@ function UserModal({ user, onClose }) {
               <input
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Digite a senha"
-                className="block w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg text-[#03012C] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#058ED9] focus:border-transparent transition"
+                className="block w-full pl-10 pr-12 py-3 border-2 border-gray-200 rounded-lg text-[#03012C] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#058ED9] focus:border-transparent transition"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-[#058ED9] transition"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5 text-gray-500" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-500" />
+                )}
+              </button>
             </div>
           </div>
 

@@ -11,7 +11,8 @@ function SoftwareRequest() {
     version: '',
     description: '',
     category: '',
-    type: 'free'
+    type: 'free',
+    downloadUrl: ''
   });
 
   const myRequests = useMemo(() => {
@@ -54,7 +55,8 @@ function SoftwareRequest() {
       version: '',
       description: '',
       category: '',
-      type: 'free'
+      type: 'free',
+      downloadUrl: ''
     });
   };
 
@@ -317,6 +319,19 @@ function SoftwareRequest() {
                     <span className="text-sm text-gray-700">Proprietário</span>
                   </label>
                 </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#03012C] mb-2">
+                  URL para Download
+                </label>
+                <input
+                  type="url"
+                  placeholder="Ex: https://code.visualstudio.com/download"
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#058ED9] focus:border-transparent"
+                  value={formData.downloadUrl}
+                  onChange={(e) => setFormData({ ...formData, downloadUrl: e.target.value })}
+                />
               </div>
 
               <div className="mb-6">
