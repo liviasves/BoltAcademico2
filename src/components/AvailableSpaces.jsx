@@ -9,10 +9,9 @@ function AvailableSpaces() {
   const [showModal, setShowModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedSpace, setSelectedSpace] = useState(null);
+  const [selectedHours, setSelectedHours] = useState([]);
   const [reservationData, setReservationData] = useState({
     date: '',
-    startTime: '',
-    endTime: '',
     purpose: ''
   });
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -21,9 +20,15 @@ function AvailableSpaces() {
   const currentDate = new Date().toISOString().split('T')[0];
 
   const getOccupiedHoursForSpace = (spaceId, date) => {
-    return reservations
+    const occupied = [];
+    reservations
       .filter(r => r.spaceId === spaceId && r.date === date && r.status === 'confirmed')
-      .map(r => r.startTime);
+      .forEach(reservation => {
+        if (reservation.hours && Array.isArray(reservation.hours)) {
+          occupied.push(...reservation.hours);
+        }
+      });
+    return occupied;
   };
 
   const getAvailableHoursForDay = (space, dayName, date) => {
@@ -79,10 +84,9 @@ function AvailableSpaces() {
 
   const handleReserveClick = (space) => {
     setSelectedSpace(space);
+    setSelectedHours([]);
     setReservationData({
       date: currentDate,
-      startTime: '',
-      endTime: '',
       purpose: ''
     });
     setShowModal(true);
@@ -93,14 +97,41 @@ function AvailableSpaces() {
     setShowScheduleModal(true);
   };
 
-  const handleConfirmReservation = () => {
-    if (!reservationData.startTime || !reservationData.endTime || !reservationData.purpose) {
-      alert('Por favor, preencha todos os campos obrigatórios.');
+  const handleHourClick = (hour) => {
+    const occupiedHours = getOccupiedHoursForSpace(selectedSpace.id, currentDate);
+
+    if (occupiedHours.includes(hour)) {
       return;
     }
 
-    if (reservationData.startTime >= reservationData.endTime) {
-      alert('O horário final deve ser posterior ao horário inicial.');
+    if (selectedHours.length === 0) {
+      setSelectedHours([hour]);
+    } else if (selectedHours.length === 1) {
+      const allHours = selectedSpace.schedule?.[today] || [];
+      const firstIndex = allHours.indexOf(selectedHours[0]);
+      const secondIndex = allHours.indexOf(hour);
+
+      const startIndex = Math.min(firstIndex, secondIndex);
+      const endIndex = Math.max(firstIndex, secondIndex);
+
+      const rangeHours = allHours.slice(startIndex, endIndex + 1);
+
+      const hasOccupiedInRange = rangeHours.some(h => occupiedHours.includes(h));
+
+      if (hasOccupiedInRange) {
+        alert('Não é possível selecionar este intervalo. Há horários ocupados entre os horários selecionados.');
+        return;
+      }
+
+      setSelectedHours(rangeHours);
+    } else {
+      setSelectedHours([hour]);
+    }
+  };
+
+  const handleConfirmReservation = () => {
+    if (selectedHours.length === 0 || !reservationData.purpose) {
+      alert('Por favor, selecione pelo menos um horário e preencha a finalidade da reserva.');
       return;
     }
 
@@ -108,14 +139,14 @@ function AvailableSpaces() {
       spaceId: selectedSpace.id,
       userId: currentUser?.id,
       date: reservationData.date,
-      startTime: reservationData.startTime,
-      endTime: reservationData.endTime,
+      hours: selectedHours,
       purpose: reservationData.purpose
     };
 
     addReservation(newReservation);
 
     setShowModal(false);
+    setSelectedHours([]);
     setShowSuccessMessage(true);
 
     setTimeout(() => {
@@ -366,7 +397,10 @@ function AvailableSpaces() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-2xl w-full p-8 relative max-h-[90vh] overflow-auto">
             <button
-              onClick={() => setShowModal(false)}
+              onClick={() => {
+                setShowModal(false);
+                setSelectedHours([]);
+              }}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
             >
               <X className="w-6 h-6" />
@@ -389,11 +423,17 @@ function AvailableSpaces() {
               </div>
 
               <div className="mb-4">
-                <div className="text-sm font-semibold text-[#03012C] mb-3">Horários disponíveis:</div>
+                <div className="text-sm font-semibold text-[#03012C] mb-3">
+                  Selecione os horários (clique em dois horários para selecionar um intervalo):
+                </div>
                 <div className="flex items-center gap-4 mb-3">
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded bg-[#80ED99]/30 border border-[#57CC99]"></div>
                     <span className="text-xs text-gray-700">Disponível</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-[#058ED9]/20 border-2 border-[#058ED9]"></div>
+                    <span className="text-xs text-gray-700">Selecionado</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded bg-red-100 border border-red-300"></div>
@@ -403,54 +443,37 @@ function AvailableSpaces() {
                 <div className="grid grid-cols-5 gap-2 max-h-48 overflow-y-auto p-2 border-2 border-gray-100 rounded-lg">
                   {(selectedSpace.schedule?.[today] || []).map(hour => {
                     const isOccupied = getOccupiedHoursForSpace(selectedSpace.id, currentDate).includes(hour);
+                    const isSelected = selectedHours.includes(hour);
+
                     return (
-                      <div
+                      <button
                         key={hour}
-                        className={`text-center py-2 rounded text-xs font-semibold ${
+                        type="button"
+                        onClick={() => handleHourClick(hour)}
+                        disabled={isOccupied}
+                        className={`text-center py-2 rounded text-xs font-semibold transition-all ${
                           isOccupied
-                            ? 'bg-red-100 text-red-600 border border-red-300'
-                            : 'bg-[#80ED99]/30 text-[#03012C] border border-[#57CC99]'
+                            ? 'bg-red-100 text-red-600 border border-red-300 cursor-not-allowed'
+                            : isSelected
+                            ? 'bg-[#058ED9]/20 text-[#03012C] border-2 border-[#058ED9] shadow-md'
+                            : 'bg-[#80ED99]/30 text-[#03012C] border border-[#57CC99] hover:bg-[#80ED99]/50 cursor-pointer'
                         }`}
                       >
                         {hour}
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-[#03012C] mb-2">
-                    Horário Inicial
-                  </label>
-                  <select
-                    value={reservationData.startTime}
-                    onChange={(e) => setReservationData({ ...reservationData, startTime: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#058ED9] transition"
-                  >
-                    <option value="">Selecione</option>
-                    {getAvailableHoursForDay(selectedSpace, today, currentDate).map(hour => (
-                      <option key={hour} value={hour}>{hour}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-[#03012C] mb-2">
-                    Horário Final
-                  </label>
-                  <select
-                    value={reservationData.endTime}
-                    onChange={(e) => setReservationData({ ...reservationData, endTime: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#058ED9] transition"
-                  >
-                    <option value="">Selecione</option>
-                    {getAvailableHoursForDay(selectedSpace, today, currentDate).map(hour => (
-                      <option key={hour} value={hour}>{hour}</option>
-                    ))}
-                  </select>
-                </div>
+                {selectedHours.length > 0 && (
+                  <div className="mt-3 p-3 bg-[#058ED9]/10 rounded-lg border border-[#058ED9]/20">
+                    <p className="text-sm font-semibold text-[#03012C]">
+                      Horários selecionados: {selectedHours.length} {selectedHours.length === 1 ? 'horário' : 'horários'}
+                    </p>
+                    <p className="text-xs text-gray-600 mt-1">
+                      {selectedHours[0]} até {selectedHours[selectedHours.length - 1]}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -469,16 +492,19 @@ function AvailableSpaces() {
 
             <div className="flex gap-4 mt-6">
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  setSelectedHours([]);
+                }}
                 className="flex-1 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleConfirmReservation}
-                disabled={getAvailableHoursForDay(selectedSpace, today, currentDate).length === 0}
+                disabled={selectedHours.length === 0}
                 className={`flex-1 py-3 font-semibold rounded-lg transition ${
-                  getAvailableHoursForDay(selectedSpace, today, currentDate).length === 0
+                  selectedHours.length === 0
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-[#57CC99] text-white hover:bg-[#4AB889]'
                 }`}
@@ -491,9 +517,9 @@ function AvailableSpaces() {
       )}
 
       {showSuccessMessage && (
-        <div className="fixed bottom-6 right-6 bg-white rounded-lg shadow-xl border-2 border-[#57CC99] p-4 animate-slide-up z-50">
+        <div className="fixed bottom-6 right-6 bg-white rounded-lg shadow-xl border-2 border-[#57CC99] p-4 animate-slide-up z-50 max-w-sm">
           <p className="text-sm font-semibold text-[#03012C]">Reserva confirmada com sucesso!</p>
-          <p className="text-xs text-gray-600 mt-1">Você pode visualizar suas reservas na página "Minhas Reservas".</p>
+          <p className="text-xs text-gray-600 mt-1">Você pode visualizar suas reservas na página de reservas.</p>
         </div>
       )}
     </div>

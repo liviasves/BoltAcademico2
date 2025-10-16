@@ -199,8 +199,7 @@ const initialReservations = [
     spaceId: 1,
     userId: 2,
     date: getTodayDate(),
-    startTime: '10:00',
-    endTime: '11:00',
+    hours: ['10:00', '11:00'],
     status: 'confirmed',
     purpose: 'Aula de Programação Web',
     createdAt: new Date().toISOString()
@@ -210,8 +209,7 @@ const initialReservations = [
     spaceId: 1,
     userId: 2,
     date: getTodayDate(),
-    startTime: '15:00',
-    endTime: '16:00',
+    hours: ['15:00'],
     status: 'confirmed',
     purpose: 'Laboratório de Estruturas de Dados',
     createdAt: new Date().toISOString()
@@ -221,8 +219,7 @@ const initialReservations = [
     spaceId: 2,
     userId: 2,
     date: getTodayDate(),
-    startTime: '07:00',
-    endTime: '08:00',
+    hours: ['07:00', '08:00'],
     status: 'confirmed',
     purpose: 'Aula de Redes de Computadores',
     createdAt: new Date().toISOString()
