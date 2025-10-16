@@ -58,12 +58,14 @@ const initialSpaces = [
     status: 'active',
     type: 'laboratory',
     software: ['Visual Studio Code', 'IntelliJ IDEA', 'Git', 'Node.js'],
-    availableDays: ['segunda-feira', 'quarta-feira', 'sexta-feira', 'sábado'],
     schedule: {
       'segunda-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+      'terça-feira': [],
       'quarta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+      'quinta-feira': [],
       'sexta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
-      'sábado': ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
+      'sábado': ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'],
+      'domingo': []
     },
     createdAt: new Date().toISOString()
   },
@@ -74,14 +76,17 @@ const initialSpaces = [
     description: 'Laboratório especializado em infraestrutura de redes',
     capacity: 25,
     location: 'Bloco A - 2º Andar',
-    status: 'active',
+    status: 'inactive',
     type: 'laboratory',
     software: ['Cisco Packet Tracer', 'Wireshark', 'GNS3'],
-    availableDays: ['terça-feira', 'quinta-feira', 'sábado'],
     schedule: {
+      'segunda-feira': [],
       'terça-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'],
+      'quarta-feira': [],
       'quinta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'],
-      'sábado': ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
+      'sexta-feira': [],
+      'sábado': ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'],
+      'domingo': []
     },
     createdAt: new Date().toISOString()
   },
@@ -95,13 +100,14 @@ const initialSpaces = [
     status: 'active',
     type: 'classroom',
     software: [],
-    availableDays: ['segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira'],
     schedule: {
       'segunda-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
       'terça-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
       'quarta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
       'quinta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
-      'sexta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00']
+      'sexta-feira': ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+      'sábado': [],
+      'domingo': []
     },
     createdAt: new Date().toISOString()
   }

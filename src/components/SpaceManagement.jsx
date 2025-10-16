@@ -26,26 +26,26 @@ function SpaceManagement() {
     description: '',
     status: 'active',
     software: [],
-    availableHours: {
-      monday: [],
-      tuesday: [],
-      wednesday: [],
-      thursday: [],
-      friday: [],
-      saturday: [],
-      sunday: []
+    schedule: {
+      'segunda-feira': [],
+      'terça-feira': [],
+      'quarta-feira': [],
+      'quinta-feira': [],
+      'sexta-feira': [],
+      'sábado': [],
+      'domingo': []
     }
   });
 
   const [newSoftware, setNewSoftware] = useState('');
   const [selectedHours, setSelectedHours] = useState({
-    monday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-    tuesday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-    wednesday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-    thursday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-    friday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-    saturday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-    sunday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {})
+    'segunda-feira': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+    'terça-feira': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+    'quarta-feira': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+    'quinta-feira': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+    'sexta-feira': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+    'sábado': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+    'domingo': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {})
   });
 
   const filteredSpaces = useMemo(() => {
@@ -91,24 +91,24 @@ function SpaceManagement() {
       description: '',
       status: 'active',
       software: [],
-      availableHours: {
-        monday: [],
-        tuesday: [],
-        wednesday: [],
-        thursday: [],
-        friday: [],
-        saturday: [],
-        sunday: []
+      schedule: {
+        'segunda-feira': [],
+        'terça-feira': [],
+        'quarta-feira': [],
+        'quinta-feira': [],
+        'sexta-feira': [],
+        'sábado': [],
+        'domingo': []
       }
     });
     setSelectedHours({
-      monday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-      tuesday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-      wednesday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-      thursday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-      friday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-      saturday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-      sunday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {})
+      'segunda-feira': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+      'terça-feira': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+      'quarta-feira': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+      'quinta-feira': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+      'sexta-feira': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+      'sábado': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+      'domingo': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {})
     });
     setNewSoftware('');
   };
@@ -130,32 +130,8 @@ function SpaceManagement() {
     });
   };
 
-  const convertHoursToRanges = (dayHours) => {
-    const selectedHours = hours.filter(hour => dayHours[hour]);
-    if (selectedHours.length === 0) return [];
-
-    const ranges = [];
-    let start = selectedHours[0];
-    let prev = selectedHours[0];
-
-    for (let i = 1; i < selectedHours.length; i++) {
-      const current = selectedHours[i];
-      const prevHour = parseInt(prev.split(':')[0]);
-      const currentHour = parseInt(current.split(':')[0]);
-
-      if (currentHour - prevHour !== 1) {
-        ranges.push(`${start}-${getNextHour(prev)}`);
-        start = current;
-      }
-      prev = current;
-    }
-    ranges.push(`${start}-${getNextHour(prev)}`);
-    return ranges;
-  };
-
-  const getNextHour = (hour) => {
-    const h = parseInt(hour.split(':')[0]) + 1;
-    return `${h.toString().padStart(2, '0')}:00`;
+  const convertHoursToArray = (dayHours) => {
+    return hours.filter(hour => dayHours[hour]);
   };
 
   const handleSubmitNew = () => {
@@ -164,15 +140,15 @@ function SpaceManagement() {
       return;
     }
 
-    const availableHours = {};
+    const schedule = {};
     Object.keys(selectedHours).forEach(day => {
-      availableHours[day] = convertHoursToRanges(selectedHours[day]);
+      schedule[day] = convertHoursToArray(selectedHours[day]);
     });
 
     const newSpace = {
       ...formData,
       capacity: parseInt(formData.capacity),
-      availableHours
+      schedule
     };
 
     addSpace(newSpace);
@@ -191,30 +167,24 @@ function SpaceManagement() {
       description: space.description || '',
       status: space.status,
       software: [...(space.software || [])],
-      availableHours: space.availableHours
+      schedule: space.schedule
     });
 
     const newSelectedHours = {
-      monday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-      tuesday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-      wednesday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-      thursday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-      friday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-      saturday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
-      sunday: hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {})
+      'segunda-feira': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+      'terça-feira': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+      'quarta-feira': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+      'quinta-feira': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+      'sexta-feira': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+      'sábado': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {}),
+      'domingo': hours.reduce((acc, hour) => ({ ...acc, [hour]: false }), {})
     };
 
-    Object.keys(space.availableHours || {}).forEach(day => {
-      const ranges = space.availableHours[day];
-      ranges.forEach(range => {
-        const [start, end] = range.split('-');
-        const startHour = parseInt(start.split(':')[0]);
-        const endHour = parseInt(end.split(':')[0]);
-        for (let h = startHour; h < endHour; h++) {
-          const hourStr = `${h.toString().padStart(2, '0')}:00`;
-          if (newSelectedHours[day][hourStr] !== undefined) {
-            newSelectedHours[day][hourStr] = true;
-          }
+    Object.keys(space.schedule || {}).forEach(day => {
+      const dayHours = space.schedule[day];
+      dayHours.forEach(hour => {
+        if (newSelectedHours[day] && newSelectedHours[day][hour] !== undefined) {
+          newSelectedHours[day][hour] = true;
         }
       });
     });
@@ -229,9 +199,9 @@ function SpaceManagement() {
       return;
     }
 
-    const availableHours = {};
+    const schedule = {};
     Object.keys(selectedHours).forEach(day => {
-      availableHours[day] = convertHoursToRanges(selectedHours[day]);
+      schedule[day] = convertHoursToArray(selectedHours[day]);
     });
 
     const updatedSpace = {
@@ -243,7 +213,7 @@ function SpaceManagement() {
       description: formData.description,
       status: formData.status,
       software: formData.software,
-      availableHours
+      schedule
     };
 
     updateSpace(editingSpace.id, updatedSpace);
@@ -599,14 +569,7 @@ function SpaceManagement() {
                 </label>
                 {Object.keys(selectedHours).map(day => (
                   <div key={day} className="mb-4">
-                    <h4 className="text-sm font-semibold text-[#03012C] mb-2 capitalize">{
-                      day === 'monday' ? 'Segunda-feira' :
-                      day === 'tuesday' ? 'Terça-feira' :
-                      day === 'wednesday' ? 'Quarta-feira' :
-                      day === 'thursday' ? 'Quinta-feira' :
-                      day === 'friday' ? 'Sexta-feira' :
-                      day === 'saturday' ? 'Sábado' : 'Domingo'
-                    }</h4>
+                    <h4 className="text-sm font-semibold text-[#03012C] mb-2 capitalize">{day}</h4>
                     <div className="grid grid-cols-8 gap-2">
                       {hours.map((hour) => (
                         <label key={hour} className="flex items-center gap-2 cursor-pointer">
@@ -786,14 +749,7 @@ function SpaceManagement() {
                 </label>
                 {Object.keys(selectedHours).map(day => (
                   <div key={day} className="mb-4">
-                    <h4 className="text-sm font-semibold text-[#03012C] mb-2 capitalize">{
-                      day === 'monday' ? 'Segunda-feira' :
-                      day === 'tuesday' ? 'Terça-feira' :
-                      day === 'wednesday' ? 'Quarta-feira' :
-                      day === 'thursday' ? 'Quinta-feira' :
-                      day === 'friday' ? 'Sexta-feira' :
-                      day === 'saturday' ? 'Sábado' : 'Domingo'
-                    }</h4>
+                    <h4 className="text-sm font-semibold text-[#03012C] mb-2 capitalize">{day}</h4>
                     <div className="grid grid-cols-8 gap-2">
                       {hours.map((hour) => (
                         <label key={hour} className="flex items-center gap-2 cursor-pointer">
