@@ -2,7 +2,7 @@ import { GraduationCap, MapPin, Users, Monitor, Building } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import SpaceManagement from './SpaceManagement';
 import UserManagement from './UserManagement';
-import SoftwareRequests from './SoftwareRequests';
+import AdminSoftwareManagement from './AdminSoftwareManagement';
 import { useApp } from '../context/AppContext';
 
 function AdminDashboard({ onLogout }) {
@@ -238,7 +238,7 @@ function AdminDashboard({ onLogout }) {
         ) : currentView === 'users' ? (
           <UserManagement />
         ) : currentView === 'software' ? (
-          <SoftwareRequests />
+          <AdminSoftwareManagement />
         ) : null}
 
         <div className="fixed bottom-6 right-6 bg-white rounded-lg shadow-xl border-2 border-[#57CC99] p-4 animate-slide-up">

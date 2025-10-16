@@ -2,7 +2,7 @@ import { GraduationCap, Calendar, MapPin, Monitor, Clock } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import AvailableSpaces from './AvailableSpaces';
-import SoftwareRequest from './SoftwareRequest';
+import ProfessorSoftwareRequest from './ProfessorSoftwareRequest';
 
 function ProfessorDashboard({ onLogout }) {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -155,7 +155,7 @@ function ProfessorDashboard({ onLogout }) {
         {currentView === 'spaces' ? (
           <AvailableSpaces />
         ) : currentView === 'software' ? (
-          <SoftwareRequest />
+          <ProfessorSoftwareRequest />
         ) : (
         <main className="flex-1 p-8 overflow-auto">
           <div className="bg-gradient-to-r from-[#058ED9] to-[#0B79BE] rounded-2xl p-8 mb-8 text-white shadow-lg">
