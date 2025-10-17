@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import AvailableSpaces from './AvailableSpaces';
 import ProfessorSoftwareRequest from './ProfessorSoftwareRequest';
+import MyReservations from './MyReservations';
 
 function ProfessorDashboard({ onLogout }) {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -58,12 +59,19 @@ function ProfessorDashboard({ onLogout }) {
     // Últimas reservas do professor (com detalhes enriquecidos)
     const recentReservations = professorReservations.slice(-3).map(res => {
       const space = getSpaceById(res.spaceId);
+      const hours = res.hours || [];
+      const sortedHours = [...hours].sort();
+      const firstHour = sortedHours[0] || '00:00';
+      const lastHour = sortedHours[sortedHours.length - 1] || '00:00';
+      const lastHourNum = parseInt(lastHour.split(':')[0]) + 1;
+      const endTime = `${lastHourNum.toString().padStart(2, '0')}:00`;
+
       return {
         id: res.id,
         space: space ? `${space.code} - ${space.name}` : 'Espaço Desconhecido',
         date: new Date(res.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-        startTime: res.startTime,
-        endTime: res.endTime,
+        startTime: firstHour,
+        endTime: endTime,
         status: res.status === 'completed' ? 'Finalizada' : res.status === 'confirmed' ? 'Confirmada' : 'Cancelada',
         statusColor: res.status === 'completed' ? 'bg-green-500' : res.status === 'confirmed' ? 'bg-blue-500' : 'bg-gray-500'
       };
@@ -95,7 +103,12 @@ function ProfessorDashboard({ onLogout }) {
             <GraduationCap className="w-5 h-5" />
             <span>Página Inicial</span>
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition text-left">
+          <button
+            onClick={() => setCurrentView('reservations')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition text-left ${
+              currentView === 'reservations' ? 'bg-white/20' : 'hover:bg-white/10'
+            }`}
+          >
             <Calendar className="w-5 h-5" />
             <span>Minhas Reservas</span>
           </button>
@@ -156,6 +169,8 @@ function ProfessorDashboard({ onLogout }) {
           <AvailableSpaces />
         ) : currentView === 'software' ? (
           <ProfessorSoftwareRequest />
+        ) : currentView === 'reservations' ? (
+          <MyReservations />
         ) : (
         <main className="flex-1 p-8 overflow-auto">
           <div className="bg-gradient-to-r from-[#058ED9] to-[#0B79BE] rounded-2xl p-8 mb-8 text-white shadow-lg">

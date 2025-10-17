@@ -199,6 +199,15 @@ const getTodayDate = () => {
   return `${year}-${month}-${day}`;
 };
 
+const getDateOffset = (daysOffset) => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysOffset);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const initialReservations = [
   {
     id: 1,
@@ -208,7 +217,7 @@ const initialReservations = [
     hours: ['10:00', '11:00'],
     status: 'confirmed',
     purpose: 'Aula de Programação Web',
-    createdAt: new Date().toISOString()
+    createdAt: new Date(Date.now() - 3600000).toISOString()
   },
   {
     id: 2,
@@ -218,17 +227,47 @@ const initialReservations = [
     hours: ['15:00'],
     status: 'confirmed',
     purpose: 'Laboratório de Estruturas de Dados',
-    createdAt: new Date().toISOString()
+    createdAt: new Date(Date.now() - 7200000).toISOString()
   },
   {
     id: 3,
     spaceId: 2,
     userId: 2,
-    date: getTodayDate(),
+    date: getDateOffset(-7),
     hours: ['07:00', '08:00'],
-    status: 'confirmed',
+    status: 'completed',
     purpose: 'Aula de Redes de Computadores',
-    createdAt: new Date().toISOString()
+    createdAt: new Date(Date.now() - 604800000).toISOString()
+  },
+  {
+    id: 4,
+    spaceId: 3,
+    userId: 2,
+    date: getDateOffset(-14),
+    hours: ['13:00', '14:00', '15:00'],
+    status: 'completed',
+    purpose: 'Apresentação de Trabalho Final',
+    createdAt: new Date(Date.now() - 1209600000).toISOString()
+  },
+  {
+    id: 5,
+    spaceId: 1,
+    userId: 2,
+    date: getDateOffset(3),
+    hours: ['09:00', '10:00', '11:00'],
+    status: 'confirmed',
+    purpose: 'Workshop de React e TypeScript',
+    createdAt: new Date(Date.now() - 86400000).toISOString()
+  },
+  {
+    id: 6,
+    spaceId: 3,
+    userId: 2,
+    date: getDateOffset(-3),
+    hours: ['14:00'],
+    status: 'cancelled',
+    purpose: 'Reunião cancelada',
+    createdAt: new Date(Date.now() - 259200000).toISOString()
   }
 ];
 
