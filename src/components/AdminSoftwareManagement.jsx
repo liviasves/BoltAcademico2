@@ -1,14 +1,15 @@
 import { Monitor, CheckCircle, XCircle, Clock, User, Calendar, Package, AlertCircle } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
+import { useNotification } from '../context/NotificationContext';
 
 function AdminSoftwareManagement() {
   const { software, approveSoftware, rejectSoftware, currentUser, getUserById } = useApp();
+  const { showSuccess } = useNotification();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [toast, setToast] = useState(null);
 
   const stats = useMemo(() => {
     const allSoftware = software || [];
@@ -29,11 +30,6 @@ function AdminSoftwareManagement() {
 
     return filtered.sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
   }, [software, filterStatus]);
-
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
 
   const handleApproveClick = (softwareId) => {
     setConfirmAction({
@@ -59,10 +55,10 @@ function AdminSoftwareManagement() {
   const handleConfirmAction = () => {
     if (confirmAction.type === 'approve') {
       approveSoftware(confirmAction.softwareId, currentUser.id);
-      showToast('Software aprovado com sucesso!', 'success');
+      showSuccess('Software aprovado com sucesso!');
     } else if (confirmAction.type === 'reject') {
       rejectSoftware(confirmAction.softwareId, currentUser.id, rejectionReason || 'Sem motivo especificado');
-      showToast('Solicitação rejeitada com sucesso', 'success');
+      showSuccess('Solicitação rejeitada com sucesso');
     }
 
     setShowConfirmModal(false);
@@ -363,20 +359,6 @@ function AdminSoftwareManagement() {
         </div>
       )}
 
-      {toast && (
-        <div className="fixed top-6 right-6 z-50 animate-slide-in">
-          <div className={`rounded-lg shadow-2xl px-6 py-4 flex items-center gap-3 min-w-[300px] ${
-            toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-          }`}>
-            {toast.type === 'success' ? (
-              <CheckCircle className="w-5 h-5 text-white flex-shrink-0" />
-            ) : (
-              <XCircle className="w-5 h-5 text-white flex-shrink-0" />
-            )}
-            <p className="text-white font-semibold">{toast.message}</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

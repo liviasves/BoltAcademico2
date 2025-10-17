@@ -1,9 +1,11 @@
 import { X, User, Mail, Lock, Shield, Building2, Eye, EyeOff } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { useNotification } from '../context/NotificationContext';
 
 function UserModal({ user, onClose }) {
   const { addUser, updateUser } = useApp();
+  const { showError, showSuccess } = useNotification();
   const isEditing = !!user;
   const [showPassword, setShowPassword] = useState(false);
 
@@ -39,14 +41,16 @@ function UserModal({ user, onClose }) {
     e.preventDefault();
 
     if (!formData.name.trim() || !formData.email.trim() || !formData.password.trim()) {
-      alert('Preencha todos os campos obrigatórios!');
+      showError('Preencha todos os campos obrigatórios!');
       return;
     }
 
     if (isEditing) {
       updateUser(user.id, formData);
+      showSuccess('Usuário atualizado com sucesso!');
     } else {
       addUser(formData);
+      showSuccess('Usuário cadastrado com sucesso!');
     }
 
     onClose();

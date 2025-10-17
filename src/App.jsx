@@ -3,18 +3,20 @@ import { useState } from 'react';
 import AdminDashboard from './components/AdminDashboard';
 import ProfessorDashboard from './components/ProfessorDashboard';
 import { useApp } from './context/AppContext';
+import { useNotification } from './context/NotificationContext';
 
 function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { currentUser, login, logout } = useApp();
+  const { showError } = useNotification();
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
     const result = login(email, password);
     if (!result.success) {
-      alert(result.message || 'Credenciais inválidas!');
+      showError(result.message || 'Credenciais inválidas!');
     }
   };
 

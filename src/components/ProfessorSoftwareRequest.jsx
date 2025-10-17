@@ -1,11 +1,12 @@
 import { Monitor, CheckCircle, XCircle, Clock, Send } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
+import { useNotification } from '../context/NotificationContext';
 
 function ProfessorSoftwareRequest() {
   const { software, addSoftware, currentUser } = useApp();
+  const { showError, showSuccess } = useNotification();
   const [showRequestModal, setShowRequestModal] = useState(false);
-  const [toast, setToast] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     version: '',
@@ -29,14 +30,9 @@ function ProfessorSoftwareRequest() {
     return { pending, approved, rejected };
   }, [myRequests]);
 
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
-
   const handleSubmitRequest = () => {
     if (!formData.name || !formData.version || !formData.category) {
-      showToast('Por favor, preencha todos os campos obrigatórios', 'error');
+      showError('Por favor, preencha todos os campos obrigatórios');
       return;
     }
 
@@ -48,7 +44,7 @@ function ProfessorSoftwareRequest() {
     };
 
     addSoftware(newRequest);
-    showToast('Solicitação enviada com sucesso!', 'success');
+    showSuccess('Solicitação enviada com sucesso!');
     setShowRequestModal(false);
     setFormData({
       name: '',
@@ -366,20 +362,6 @@ function ProfessorSoftwareRequest() {
         </div>
       )}
 
-      {toast && (
-        <div className="fixed top-6 right-6 z-50 animate-slide-in">
-          <div className={`rounded-lg shadow-2xl px-6 py-4 flex items-center gap-3 min-w-[300px] ${
-            toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-          }`}>
-            {toast.type === 'success' ? (
-              <CheckCircle className="w-5 h-5 text-white flex-shrink-0" />
-            ) : (
-              <XCircle className="w-5 h-5 text-white flex-shrink-0" />
-            )}
-            <p className="text-white font-semibold">{toast.message}</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

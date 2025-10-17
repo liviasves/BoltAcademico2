@@ -1,9 +1,11 @@
 import { Building, MapPin, Users, Monitor, Plus, Edit2, Trash2, X, Power, Search } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
+import { useNotification } from '../context/NotificationContext';
 
 function SpaceManagement() {
   const { spaces, addSpace, updateSpace, deleteSpace } = useApp();
+  const { showError, showSuccess, confirm } = useNotification();
   const [showNewModal, setShowNewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingSpace, setEditingSpace] = useState(null);
@@ -136,7 +138,7 @@ function SpaceManagement() {
 
   const handleSubmitNew = () => {
     if (!formData.code || !formData.name || !formData.capacity || !formData.location) {
-      alert('Por favor, preencha todos os campos obrigatórios.');
+      showError('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
 
@@ -152,6 +154,7 @@ function SpaceManagement() {
     };
 
     addSpace(newSpace);
+    showSuccess('Espaço cadastrado com sucesso!');
     setShowNewModal(false);
     resetForm();
   };
@@ -195,7 +198,7 @@ function SpaceManagement() {
 
   const handleSubmitEdit = () => {
     if (!formData.code || !formData.name || !formData.capacity || !formData.location) {
-      alert('Por favor, preencha todos os campos obrigatórios.');
+      showError('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
 
@@ -217,6 +220,7 @@ function SpaceManagement() {
     };
 
     updateSpace(editingSpace.id, updatedSpace);
+    showSuccess('Espaço atualizado com sucesso!');
     setShowEditModal(false);
     setEditingSpace(null);
     resetForm();
@@ -225,11 +229,14 @@ function SpaceManagement() {
   const handleToggleStatus = (space) => {
     const newStatus = space.status === 'active' ? 'inactive' : 'active';
     updateSpace(space.id, { status: newStatus });
+    showSuccess(`Espaço ${newStatus === 'active' ? 'ativado' : 'desativado'} com sucesso!`);
   };
 
-  const handleDelete = (spaceId) => {
-    if (window.confirm('Tem certeza que deseja excluir este espaço?')) {
+  const handleDelete = async (spaceId) => {
+    const confirmed = await confirm('Tem certeza que deseja excluir este espaço?');
+    if (confirmed) {
       deleteSpace(spaceId);
+      showSuccess('Espaço excluído com sucesso!');
     }
   };
 

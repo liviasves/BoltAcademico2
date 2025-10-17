@@ -1,10 +1,12 @@
 import { Users, Plus, Mail, Shield, Building2, Edit2, Trash2 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
+import { useNotification } from '../context/NotificationContext';
 import UserModal from './UserModal';
 
 function UserManagement() {
   const { users, deleteUser } = useApp();
+  const { confirm, showSuccess } = useNotification();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
 
@@ -37,9 +39,13 @@ function UserManagement() {
     setEditingUser(null);
   };
 
-  const handleDeleteUser = (userId) => {
-    if (window.confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.')) {
+  const handleDeleteUser = async (userId) => {
+    const confirmed = await confirm(
+      'Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.'
+    );
+    if (confirmed) {
       deleteUser(userId);
+      showSuccess('Usuário excluído com sucesso!');
     }
   };
 

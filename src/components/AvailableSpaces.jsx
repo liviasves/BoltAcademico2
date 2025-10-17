@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
 import { Search, MapPin, Users, Calendar, Monitor, Building, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import CustomDialog from './CustomDialog';
+import { useNotification } from '../context/NotificationContext';
 
 function AvailableSpaces() {
   const { spaces, reservations, currentUser, addReservation } = useApp();
+  const { showError, showSuccess } = useNotification();
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [showModal, setShowModal] = useState(false);
@@ -15,19 +16,9 @@ function AvailableSpaces() {
     date: '',
     purpose: ''
   });
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [dialog, setDialog] = useState({ isOpen: false, title: '', message: '', type: 'alert' });
 
   const today = new Date().toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
   const currentDate = new Date().toISOString().split('T')[0];
-
-  const showDialog = (title, message, type = 'alert') => {
-    setDialog({ isOpen: true, title, message, type });
-  };
-
-  const closeDialog = () => {
-    setDialog({ ...dialog, isOpen: false });
-  };
 
   const getOccupiedHoursForSpace = (spaceId, date) => {
     const occupied = [];
@@ -127,11 +118,7 @@ function AvailableSpaces() {
       const hasOccupiedInRange = rangeHours.some(h => occupiedHours.includes(h));
 
       if (hasOccupiedInRange) {
-        showDialog(
-          'Seleção Inválida',
-          'Não é possível selecionar este intervalo. Há horários ocupados entre os horários selecionados.',
-          'error'
-        );
+        showError('Não é possível selecionar este intervalo. Há horários ocupados entre os horários selecionados.');
         return;
       }
 
@@ -143,11 +130,7 @@ function AvailableSpaces() {
 
   const handleConfirmReservation = () => {
     if (selectedHours.length === 0 || !reservationData.purpose) {
-      showDialog(
-        'Campos Obrigatórios',
-        'Por favor, selecione pelo menos um horário e preencha a finalidade da reserva.',
-        'error'
-      );
+      showError('Por favor, selecione pelo menos um horário e preencha a finalidade da reserva.');
       return;
     }
 
@@ -160,14 +143,10 @@ function AvailableSpaces() {
     };
 
     addReservation(newReservation);
+    showSuccess('Reserva confirmada com sucesso!');
 
     setShowModal(false);
     setSelectedHours([]);
-    setShowSuccessMessage(true);
-
-    setTimeout(() => {
-      setShowSuccessMessage(false);
-    }, 4000);
   };
 
   return (
@@ -524,20 +503,6 @@ function AvailableSpaces() {
         </div>
       )}
 
-      <CustomDialog
-        isOpen={dialog.isOpen}
-        onClose={closeDialog}
-        title={dialog.title}
-        message={dialog.message}
-        type={dialog.type}
-      />
-
-      {showSuccessMessage && (
-        <div className="fixed bottom-6 right-6 bg-white rounded-lg shadow-xl border-2 border-[#57CC99] p-4 animate-slide-up z-50 max-w-sm">
-          <p className="text-sm font-semibold text-[#03012C]">Reserva confirmada com sucesso!</p>
-          <p className="text-xs text-gray-600 mt-1">Você pode visualizar suas reservas na página de reservas.</p>
-        </div>
-      )}
     </div>
   );
 }
