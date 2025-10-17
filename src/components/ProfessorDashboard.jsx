@@ -56,8 +56,18 @@ function ProfessorDashboard({ onLogout }) {
     // Softwares pendentes
     const pendingSoftwares = uniqueSoftware.filter(s => s.status === 'pending').length;
 
-    // Últimas reservas do professor (com detalhes enriquecidos)
-    const recentReservations = professorReservations.slice(-3).map(res => {
+    // Últimas 3 reservas do professor (ordenadas por data/hora)
+    const sortedReservations = professorReservations.sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      if (dateB - dateA !== 0) return dateB - dateA;
+
+      const timeA = a.hours?.[0] || '00:00';
+      const timeB = b.hours?.[0] || '00:00';
+      return timeB.localeCompare(timeA);
+    });
+
+    const recentReservations = sortedReservations.slice(0, 3).map(res => {
       const space = getSpaceById(res.spaceId);
       const hours = res.hours || [];
       const sortedHours = [...hours].sort();
@@ -198,7 +208,10 @@ function ProfessorDashboard({ onLogout }) {
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-[#03012C] mb-6">Ações Rápidas</h2>
             <div className="grid grid-cols-3 gap-6">
-              <button className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-[#058ED9] hover:shadow-lg transition group text-left">
+              <button
+                onClick={() => setCurrentView('reservations')}
+                className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-[#058ED9] hover:shadow-lg transition group text-left"
+              >
                 <div className="w-12 h-12 bg-[#03012C] rounded-lg flex items-center justify-center mb-4 group-hover:bg-[#058ED9] transition">
                   <Calendar className="w-6 h-6 text-white" />
                 </div>
@@ -272,7 +285,10 @@ function ProfessorDashboard({ onLogout }) {
                 </div>
 
                 <div className="p-5 bg-gray-50 border-t-2 border-gray-200">
-                  <button className="w-full py-3 border-2 border-[#058ED9] text-[#058ED9] font-semibold rounded-lg hover:bg-[#058ED9] hover:text-white transition">
+                  <button
+                    onClick={() => setCurrentView('reservations')}
+                    className="w-full py-3 border-2 border-[#058ED9] text-[#058ED9] font-semibold rounded-lg hover:bg-[#058ED9] hover:text-white transition"
+                  >
                     Ver Todas as Reservas
                   </button>
                 </div>

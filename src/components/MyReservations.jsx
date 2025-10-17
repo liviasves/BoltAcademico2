@@ -1,9 +1,12 @@
 import { Calendar, Clock, MapPin, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useApp } from '../context/AppContext';
 
 function MyReservations() {
-  const { reservations, currentUser, getSpaceById } = useApp();
+  const { reservations, currentUser, getSpaceById, updateReservation } = useApp();
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState(null);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   const myReservations = useMemo(() => {
     const userReservations = (reservations || []).filter(r => r.userId === currentUser?.id);
@@ -99,6 +102,45 @@ function MyReservations() {
     return `${firstHour} - ${endTime}`;
   };
 
+  const canConfirmUsage = (reservation) => {
+    if (reservation.status !== 'confirmed') return false;
+
+    const now = new Date();
+    const [year, month, day] = reservation.date.split('-').map(Number);
+    const reservationDate = new Date(year, month - 1, day);
+    const hours = reservation.hours || [];
+    const lastHour = [...hours].sort()[hours.length - 1];
+
+    if (!lastHour) return false;
+
+    const [hour] = lastHour.split(':').map(Number);
+    const endHour = hour + 1;
+    const reservationEnd = new Date(year, month - 1, day, endHour, 0);
+
+    return now >= reservationEnd;
+  };
+
+  const handleConfirmUsage = (reservation) => {
+    setSelectedReservation(reservation);
+    setShowConfirmModal(true);
+  };
+
+  const confirmUsage = () => {
+    if (selectedReservation) {
+      updateReservation(selectedReservation.id, {
+        status: 'completed',
+        completedAt: new Date().toISOString()
+      });
+      setShowConfirmModal(false);
+      setSelectedReservation(null);
+      setShowSuccessMessage(true);
+
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 4000);
+    }
+  };
+
   return (
     <div className="flex-1 bg-[#F5EFED] p-8 overflow-auto">
       <div className="max-w-7xl mx-auto">
@@ -187,9 +229,55 @@ function MyReservations() {
                       </p>
                     </div>
                   </div>
+
+                  {reservation.status === 'confirmed' && canConfirmUsage(reservation) && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => handleConfirmUsage(reservation)}
+                        className="w-full py-2 bg-[#03012C] text-white text-sm font-semibold rounded-lg hover:bg-[#058ED9] transition"
+                      >
+                        Confirmar Uso
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {showConfirmModal && selectedReservation && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl max-w-md w-full p-8">
+              <h2 className="text-2xl font-bold text-[#03012C] mb-4">Confirmar Uso do Espaço</h2>
+              <p className="text-gray-600 mb-6">
+                Você está confirmando que utilizou o espaço <strong>{selectedReservation.spaceName}</strong> no dia <strong>{formatDate(selectedReservation.date)}</strong> no horário <strong>{getHourRange(selectedReservation.hours)}</strong>.
+              </p>
+              <p className="text-sm text-gray-500 mb-6">
+                Esta confirmação é apenas indicativa. O sistema já liberou o espaço automaticamente após o horário final da reserva.
+              </p>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setShowConfirmModal(false)}
+                  className="flex-1 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmUsage}
+                  className="flex-1 py-3 bg-[#03012C] text-white font-semibold rounded-lg hover:bg-[#058ED9] transition"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showSuccessMessage && (
+          <div className="fixed bottom-6 right-6 bg-white rounded-lg shadow-xl border-2 border-[#57CC99] p-4 z-50">
+            <p className="text-sm font-semibold text-[#03012C]">Uso confirmado com sucesso!</p>
+            <p className="text-xs text-gray-600 mt-1">A reserva foi marcada como finalizada.</p>
           </div>
         )}
       </div>
